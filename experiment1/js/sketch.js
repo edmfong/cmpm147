@@ -1,6 +1,6 @@
 // sketch.js - purpose and description here
-// Author: Your Name
-// Date:
+// Author: Edwin Fong
+// Date: 4/7/24
 
 // Here is how you might set up an OOP p5.js project
 // Note that p5.js looks for a file called sketch.js
