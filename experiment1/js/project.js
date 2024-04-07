@@ -32,11 +32,11 @@ class MyProjectClass {
       
     };
     
-    const template = `Honorable $adventurer, heed my $message!
+    const template = `\nHonorable $adventurer, heed my $message!\n
     
-    I have just come from $pre$post where the $people folk are in desperate need. Their town has been overrun by $baddies. You must venture forth at once, taking my $item, and help them.
+    I have just come from $pre$post where the $people folk are in desperate need. Their town has been overrun by $baddies. You must venture forth at once, taking my $item, and help them.\n
     
-    It is told that the one who can rescue them will be awarded with $num $looty $loots. Surely this must tempt one such as yourself!
+    It is told that the one who can rescue them will be awarded with $num $looty $loots. Surely this must tempt one such as yourself!\n
     `;
     
     
