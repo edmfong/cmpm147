@@ -14,7 +14,6 @@ function main() {
     pre: ["Fra", "Tro", "Gre", "Pan", "Ast", "Ara"],
     post: ["gria", "ston", "gott", "ora"],
     people: ["weak", "fearful", "average", "scared", "fragile", "sickly"],
-    item: ["advice", "guidance", "instructions"],
     num: ["one", "two"],
     looty: ["garbage", "common", "rare", "epic", "legendary", "mythic"],
     loots: ["rated weapon", "rated armor"],
@@ -23,12 +22,11 @@ function main() {
     
   };
   
-  const template = `\nHonorable $adventurer, heed my $message!\n
-  
-  I have just come from $pre$post where the $people folk are in desperate need. Their town has been overrun by $baddies. You must venture forth at once, taking my $item, and help them.\n
-  
-  It is told that the one who can rescue them will be awarded with $num $looty $loots. Surely this must tempt one such as yourself!\n
-  `;
+  const template = 
+  `
+Honorable $adventurer, heed my $message!\n
+I have just come from $pre$post where the $people folk are in desperate need. Their town has been overrun by $baddies. I bed you, please go help them.\n
+It is told that the adventure guild will awarded the heros with $num $looty $loots. Surely this must tempt one such as yourself!\n`;
   
   
   // STUDENTS: You don't need to edit code below this line.
