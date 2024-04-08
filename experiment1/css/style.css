@@ -28,12 +28,12 @@ body {
 
 .glitch-output {
   width: 500px;
-  font-family: fantasy; 
+  font-family: Cursive; 
   border: thin solid gray; 
   padding: 1em; 
   margin: 1em; 
   box-shadow: 2px 2px 5px gray; 
-  background: #ffe;
+  background: #c99f73;
 }
 
 .glitch-output #box {

@@ -18,15 +18,15 @@ function main() {
     looty: ["garbage", "common", "rare", "epic", "legendary", "mythic"],
     loots: ["rated weapon", "rated armor"],
     baddies: ["orcs", "goblin", "direwolves", "wyverns", "slimes", "ogers", "thieves"],
-    message: ["call", "warning", "plea", "beckoning"],
+    message: ["danger", "peril", "jeopardy"],
     
   };
   
   const template = 
-  `
-Honorable $adventurer, heed my $message!\n
-I have just come from $pre$post where the $people folk are in desperate need. Their town has been overrun by $baddies. I bed you, please go help them.\n
-It is told that the adventure guild will awarded the heros with $num $looty $loots. Surely this must tempt one such as yourself!\n`;
+  `You enter the guild, looking for a job. The following parchment states...\n
+Honorable $adventurer, we are in $message!\n
+Thw town of $pre$post is swarmed in a hoard of $baddies. The $people villagers are in $message and are in desperate need. I bed you, please help us.\n
+The adventurer's guild will awarded the heros with $num $looty $loots.\n\n`;
   
   
   // STUDENTS: You don't need to edit code below this line.
