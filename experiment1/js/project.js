@@ -26,7 +26,7 @@ function main() {
   `You enter the guild, looking for a job. The following parchment states...\n
 Honorable $adventurer, we are in $message!\n
 Thw town of $pre$post is swarmed in a hoard of $baddies. The $people villagers are in $message and are in desperate need. I bed you, please help us.\n
-The adventurer's guild will awarded the heros with $num $looty $loots.\n\n`;
+The adventurer's guild will awarded the heros with $num $looty $loots.\n\n `;
   
   
   // STUDENTS: You don't need to edit code below this line.
