@@ -2,7 +2,7 @@
 <html>
 <head>
 	<!-- This title is used for tabs and bookmarks -->
-	<title>Experiment X - Subject/Topic</title>
+	<title>Experiment 2 - Living Impressions</title>
 
 	<!-- Use UTF character set, a good idea with any webpage -->
 	<meta charset="UTF-8" />
@@ -32,30 +32,45 @@
 	<main id="content">
 		<section>
 
-			<h1>Experiment X - Subject/Topic</h1>
+			<h1>Experiment 2 - Living Impressions</h1>
 
 			<div class="minor-section">
 				<div id="canvas-container">
 					<!-- canvas will be added here -->
 				</div>
                 <div class="fullscreen-box">
+					<button id="reimagine">Reimagine</button>
                     <button id="fullscreen">Fullscreen</button>
                 </div>
 			</div>
 
 			<div class="minor-section">
 				<h2>Description</h2>
-				<p>What are you trying to acomplish with this experiment?</p>
+				<p>This experient displays generative impression of this image:<br>
+					<img src="https://cdn.glitch.global/611d9481-3ef3-48fe-9ca0-d06c09881ed7/duck.jpg?v=1713215363169"> <br>
+					<a href="https://garystockbridge617.getarchive.net/amp/media/nature-pond-animal-nature-landscapes-a6c8c2" target="_blank">[source]</a> 
+				</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Technical</h2>
-				<p>Describe in detail what you did technically and how it works?</p>
+				<p><b>Color</b><br> The sky, grass, trees, cloud, and ducks were estimated based on testing different colors on the color wheel tool via Google.<br><br>
+					<b>Primitives</b><br> The trees are rendered with `triangle` primitives.<br>
+								  The duck are rendered with various `triangle` and `ellipse` primatives.<br><br>
+					<b>Polygons</b><br> The riverbank and grass land are two single randomly generated polygon using `vertex` calls.<br><br>
+					<b>Composition</b><br> Different noise values lead to differently shaped river bank and grass land. The trees are positioned along the grass land vertexes.<br>
+								   The trees sizes, cloud color, cloud speed, and duck speed are generated randomly.<br><br>
+					<b>Life</b><br> The position of cloud and ducks are animated over time as if to simulate the view from ducks swimming and clouds moving.<br>
+				</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Reflection</h2>
-				<p>Each person that worked on the code should reflect on the process, the difficulties, and the successes of the experiment.</p>
+				<p>Overall, the experiment was easier than expected. However, there were some hiccups along the way. One hiccup that took
+					the longest to solve was why the trees kept "moving," but later I discovered that since the trees were 'drawn' every frame,
+					the size was changing every frame. Other than that, the experiment was a success and the shapes turned out pretty good.<br>
+					* ChatGPT was a major help throughout this project.
+				</p>
 			</div>
 
 		</section>
