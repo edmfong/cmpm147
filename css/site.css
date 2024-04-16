@@ -9,7 +9,7 @@ h1, h2 {
   width: calc(100% - 30px);
   margin: 10px;080;
   padding: 10px;
-  border: solid 1px #808;
+  border: solid 1px #000000;
   font-family: sans-serif;
 }
 
@@ -54,4 +54,8 @@ body.is-fullscreen #canvas-container {
   height: 100vh !important;
   margin: 0; /* Remove any default margins */
   z-index: 1000; /* Ensure it's above other content */
+}
+
+body {
+  background-color: #FFF4C8; /* Replace #ffffff with your desired color code */
 }
