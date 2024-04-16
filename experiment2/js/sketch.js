@@ -52,6 +52,7 @@ function setup() {
   // size modifiers
   duckSizeModifier = canvasContainer.height() / 250;
   treeSizeModifier = canvasContainer.height() / 200;
+  cloudSizeModifier = canvasContainer.height() / 250;
 
   // Initialize tree positions and sizes once during setup
   generateTreeData();
@@ -76,7 +77,7 @@ function draw() {
   for (let i = 0; i < clouds.length; i++) {
     let cloud = clouds[i];
     moveCloud(cloud); // Move the cloud
-    drawCloud(cloud); // Draw the cloud
+    drawCloud(cloud, cloudSizeModifier); // Draw the cloud
   }
   
   // Draw trees using precalculated positions and sizes
@@ -278,9 +279,9 @@ function moveCloud(cloud) {
 }
 
 // Function to draw a cloud
-function drawCloud(cloud) {
+function drawCloud(cloud, cloudSizeModifier) {
   fill(cloud.color); // Set fill color for cloud
   noStroke(); // No stroke for cloud
-  ellipse(cloud.x, cloud.y, cloud.size * 0.8, cloud.size * 0.5); // Draw cloud as an ellipse
-  ellipse(cloud.x + cloud.size * 0.4, cloud.y - cloud.size * 0.2, cloud.size, cloud.size * 0.6); // Draw another ellipse for cloud
+  ellipse(cloud.x, cloud.y, cloud.size * 0.8 * cloudSizeModifier, cloud.size * 0.5 * cloudSizeModifier); // Draw cloud as an ellipse
+  ellipse(cloud.x + cloud.size * 0.4 * cloudSizeModifier, cloud.y - cloud.size * 0.2 * cloudSizeModifier, cloud.size * cloudSizeModifier, cloud.size * 0.6 * cloudSizeModifier); // Draw another ellipse for cloud
 }
