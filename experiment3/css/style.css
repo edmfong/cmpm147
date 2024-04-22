@@ -16,4 +16,6 @@ body {
 #canvas-container {
     width: 100%;
     height: 600px;
+    text-align: center; /* Center align content */
 }
+

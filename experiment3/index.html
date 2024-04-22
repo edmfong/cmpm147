@@ -32,11 +32,25 @@
 	<main id="content">
 		<section>
 
-			<h1>Experiment X - Subject/Topic</h1>
+			<h1>Experiment 3 - Alternate Worlds</h1>
 
 			<div class="minor-section">
 				<div id="canvas-container">
-					<!-- canvas will be added here -->
+					<body>
+						<button id="reseedButton">
+						  Reseed
+						</button>
+						<span id="seedReport"></span>
+						<hr />
+						<span id="canvasContainer" style="margin: 10px;"></span>
+						<textarea cols="30" rows="30" id="asciiBox" style="opacity: 0.5; letter-spacing: 1ex; width: 420px; margin: 10px; font-family: monospace;"></textarea><br>
+						
+						<div id="buttonContainer">
+							<br>
+							<button id="dungeonButton">Dungeon</button>
+							<button id="overworldButton">Overworld</button>
+						</div>
+					</body>
 				</div>
                 <div class="fullscreen-box">
                     <button id="fullscreen">Fullscreen</button>
@@ -45,17 +59,35 @@
 
 			<div class="minor-section">
 				<h2>Description</h2>
-				<p>What are you trying to acomplish with this experiment?</p>
+				<p>This experiemnt displays procedural generation utilizing autotiling.<br>
+					The theme of the overworld is a lone house in the woods next to a lake as the seasons change.<br>
+					The theme of the dungeon is a typical RPG dungeon featuring randomly generated loot or mobs in each room.	
+				</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Technical</h2>
-				<p>Describe in detail what you did technically and how it works?</p>
+				<p>
+					Overworld:<br>
+					The world is procedurally generated utilizing noise to randomize the water, and land.<br>
+					To make the world more random, the trees and lilypads are randomly placed based on noise.<br>
+					Based on the theme, only one duck and house are randomly placed.
+					<br><br>
+					Dungeon:<br>
+					The dungeon is procedurally generated utilizing noise and the dungeon size is randomized.<br>
+					To make each dungeon room more random, the loot and mobs are randomly placed.
+				</p>
 			</div>
 
 			<div class="minor-section">
 				<h2>Reflection</h2>
-				<p>Each person that worked on the code should reflect on the process, the difficulties, and the successes of the experiment.</p>
+				<p>
+					Overall, the experiment was harder than expected. There were some hiccups along the way,
+					such as implementing the autotiling and messing with noise variables. One of the biggest
+					hurdles I faced was generating and conncting hallways in the dungeons. One thing that went
+					successfully was that changing and the tiles based on the time worked well.
+					* ChatGPT was a major help throughout this project.
+				</p>
 			</div>
 
 		</section>
