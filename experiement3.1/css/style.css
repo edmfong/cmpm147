@@ -1,0 +1,54 @@
+/* style.css */
+
+/* Set the canvas element to be the full size of the container */
+canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Center the canvas element on the page */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    text-align: center; /* Center align content */
+}
+#container {
+    display: flex;
+    align-items: flex-start; /* Align items at the top */
+    justify-content: flex-start; /* Start from the beginning */
+    flex-wrap: wrap; /* Allow wrapping when needed */
+}
+
+#c2 {
+    margin-right: 10px; /* Adjust margin between c2 and asciiBox2 */
+}
+
+#asciiBox2 {
+    width: 280px; /* Let the width be flexible */
+    height: 300px; /* Adjust height if needed */
+    resize: none; /* Disable resizing of the textarea */
+    opacity: 0.5;
+    letter-spacing: 1ex;
+    margin: 10px; 
+    font-family: monospace;
+}
+
+#c1 {
+    margin-right: 10px; /* Adjust margin between c2 and asciiBox2 */
+}
+
+#asciiBox1 {
+    width: 280px; /* Let the width be flexible */
+    height: 300px; /* Adjust height if needed */
+    resize: none; /* Disable resizing of the textarea */
+    opacity: 0.5;
+    letter-spacing: 1ex;
+    margin: 10px; 
+    font-family: monospace;
+}
