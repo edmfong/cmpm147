@@ -8,6 +8,7 @@
 // Constants - User-servicable parts
 let seed = 0;
 let tilesetImage;
+let currentGrid = [];
 let numRows, numCols;
 
 const lookup = [
@@ -34,38 +35,37 @@ let num = 0; // 0 = spring, 1 = summer, 2 = autumn, 3 = winter
 let season = 0;
 let currentSecond = 0;
 let lastSecond = -1;
-// let version = 1; // 0 = overworld, 1 = dungeon
+let version = 0; // 0 = overworld, 1 = dungeon
 
-// function resizeScreen() {
-//   centerHorz = canvasContainer.width() / 2; // Adjusted for drawing logic
-//   centerVert = canvasContainer.height() / 2; // Adjusted for drawing logic
-//   console.log("Resizing...");
-//   resizeCanvas(canvasContainer.width(), canvasContainer.height());
-//   // redrawCanvas(); // Redraw everything based on new size
-// }
+function resizeScreen() {
+  centerHorz = canvasContainer.width() / 2; // Adjusted for drawing logic
+  centerVert = canvasContainer.height() / 2; // Adjusted for drawing logic
+  console.log("Resizing...");
+  resizeCanvas(canvasContainer.width(), canvasContainer.height());
+  // redrawCanvas(); // Redraw everything based on new size
+}
 
 // setup() function is called once when the program starts
 function setup() {
   // place our canvas, making it fit our container
-  //canvasContainer = $("#canvas-container");
-  
-  // let canvas = createCanvas(canvasContainer.width(), canvasContainer.height());
-  // canvas.parent("canvas-container");
+  canvasContainer = $("#canvas-container");
+  let canvas = createCanvas(canvasContainer.width(), canvasContainer.height());
+  canvas.parent("canvas-container");
   // resize canvas is the page is resized
 
-  // $(window).resize(function() {
-  //   resizeScreen();
-  // });
-  // resizeScreen();
+  $(window).resize(function() {
+    resizeScreen();
+  });
+  resizeScreen();
 
-  // numCols = select("#asciiBox").attribute("rows") | 0;
-  // numRows = select("#asciiBox").attribute("cols") | 0;
+  numCols = select("#asciiBox").attribute("rows") | 0;
+  numRows = select("#asciiBox").attribute("cols") | 0;
 
-  // createCanvas(16 * numCols, 16 * numRows).parent("canvasContainer");
-  // select("canvas").elt.getContext("2d").imageSmoothingEnabled = false;
+  createCanvas(16 * numCols, 16 * numRows).parent("canvasContainer");
+  select("canvas").elt.getContext("2d").imageSmoothingEnabled = false;
 
   select("#reseedButton").mousePressed(reseed);
-  // select("#asciiBox").input(reparseGrid);
+  select("#asciiBox").input(reparseGrid);
 
   reseed();
 }
@@ -73,9 +73,16 @@ function setup() {
 // draw() function is called repeatedly, it's the main animation loop
 function draw() {
   randomSeed(seed);
-  //drawGrid(currentGrid);
-  // sketch1.draw();
-  // sketch2.draw();
+  drawGrid(currentGrid);
+
+  select("#dungeonButton").mousePressed(() => {
+    version = 1;
+    regenerateGrid();
+  });
+  select("#overworldButton").mousePressed(() => {
+    version = 0
+    regenerateGrid();
+  });
 }
 
 function preload() {
@@ -89,19 +96,17 @@ function reseed() {
   randomSeed(seed);
   noiseSeed(seed);
   select("#seedReport").html("seed " + seed);
-  //regenerateGrid();
-  sketch1.regenerateGrid();
-  sketch2.regenerateGrid();
+  regenerateGrid();
 }
 
-// function regenerateGrid() {
-//   select("#asciiBox").value(gridToString(generateGrid(numCols, numRows, version = 0)));
-//   reparseGrid();
-// }
+function regenerateGrid() {
+  select("#asciiBox").value(gridToString(generateGrid(numCols, numRows)));
+  reparseGrid();
+}
 
-// function reparseGrid() {
-//   currentGrid = stringToGrid(select("#asciiBox").value());
-// }
+function reparseGrid() {
+  currentGrid = stringToGrid(select("#asciiBox").value());
+}
 
 function gridToString(grid) {
   let rows = [];
@@ -126,13 +131,13 @@ function stringToGrid(str) {
 }
 
 
-// function placeTile(i, j, ti, tj) {
-//   image(tilesetImage, 16 * j, 16 * i, 16, 16, 8 * ti, 8 * tj, 8, 8);
+function placeTile(i, j, ti, tj) {
+  image(tilesetImage, 16 * j, 16 * i, 16, 16, 8 * ti, 8 * tj, 8, 8);
   
-// }
+}
 
 
-function generateGrid(numCols, numRows, version) {
+function generateGrid(numCols, numRows) {
   if (version == 0) {
     let grid = [];
     let housePlaced = false; // Flag to track if the house ("h") has been placed
@@ -328,198 +333,198 @@ function generateGrid(numCols, numRows, version) {
   }
 }
 
-// function drawGrid(grid) {
-//   if (version == 0) {
-//     background(128);
-//     const g = 10;
-//     const t = millis() / 1000.0;
+function drawGrid(grid) {
+  if (version == 0) {
+    background(128);
+    const g = 10;
+    const t = millis() / 1000.0;
 
-//     noStroke();
-//     for (let i = 0; i < grid.length; i++) {
-//       for (let j = 0; j < grid[i].length; j++) {
-//         if (season == 3) {
-//           placeTile(i, j, 20, 12); // ice
-//         }
-//         else {
-//           placeTile(i, j, (4 * pow(noise(t / 10, i, j / 4 + t), 2)) | 0, 14); // water
-//         }
-
-
-//         if (gridCheck(grid, i, j, ":")) { // dirt
-//           if (season == 3) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-//           }
-//           else {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 3);
-//           }
-//         } else {
-//           // Check if the tile is not near a duck
-//           if (!isNearDuck(grid, i, j) && !isNearLilyPad(grid, i, j)) {
-
-//             if (season == 3) {
-//               drawContext(grid, i, j, "w", 9, 12, true);
-//             }
-//             else {
-//               drawContext(grid, i, j, "w", 9, 3, true);
-//             }
-
-//           } 
-//         }
+    noStroke();
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[i].length; j++) {
+        if (season == 3) {
+          placeTile(i, j, 20, 12); // ice
+        }
+        else {
+          placeTile(i, j, (4 * pow(noise(t / 10, i, j / 4 + t), 2)) | 0, 14); // water
+        }
 
 
-//         if (gridCheck(grid, i, j, ".")) { // grass
-//           if (season == 1) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-//           }
-//           else if (season == 2) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
-//           }
-//           else if (season == 3) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-//           }
-//           else {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 1);
-//           }
-//         } 
+        if (gridCheck(grid, i, j, ":")) { // dirt
+          if (season == 3) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
+          }
+          else {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 3);
+          }
+        } else {
+          // Check if the tile is not near a duck
+          if (!isNearDuck(grid, i, j) && !isNearLilyPad(grid, i, j)) {
 
-//         else {
-//           // Check if the tile is not near a duck
-//           if (!isNearDuck(grid, i, j)) {
-//             if (season == 2) {
-//               drawContext(grid, i, j, ".", 4, 6);
-//             }
-//             else if (season == 3) {
-//               drawContext(grid, i, j, ".", 4, 12);
-//             }
-//             else {
-//               drawContext(grid, i, j, ".", 4, 0);
-//             }
-//           }
-//         }
+            if (season == 3) {
+              drawContext(grid, i, j, "w", 9, 12, true);
+            }
+            else {
+              drawContext(grid, i, j, "w", 9, 3, true);
+            }
 
-//         // Check if the current tile is the house ("h")
-//         if (grid[i][j] === "h") {
-//           if (season == 1) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-//             placeTile(i, j, 26, houseColor);
-//           }
-//           else if (season == 2) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
-//             placeTile(i, j, 26, houseColor);
-//           }
-//           else if (season == 3) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-//             placeTile(i, j, 27, houseColor);
-//           }
-//           else {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-//             placeTile(i, j, 26, houseColor);
-//           }
+          } 
+        }
 
-//         }
 
-//         // Check if the current tile is the tree ("t")
-//         if (grid[i][j] === "t") {
-//           if (season == 1) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-//             placeTile(i, j, 14, 0);
-//           }
-//           else if (season == 2) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
-//             placeTile(i, j, 14, 3);
-//           }
-//           else if (season == 3) {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-//             placeTile(i, j, 14, 12);
-//           }
-//           else {
-//             placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-//             placeTile(i, j, 14, 9);
-//           }
-//         }
+        if (gridCheck(grid, i, j, ".")) { // grass
+          if (season == 1) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
+          }
+          else if (season == 2) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
+          }
+          else if (season == 3) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
+          }
+          else {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 1);
+          }
+        } 
 
-//         // Check if the current tile is the duck ("d")
-//         if (grid[i][j] === "d") {
-//           if (season !== 3) {
-//             placeTile(i, j, 8, 28);
-//           }
-//         } 
+        else {
+          // Check if the tile is not near a duck
+          if (!isNearDuck(grid, i, j)) {
+            if (season == 2) {
+              drawContext(grid, i, j, ".", 4, 6);
+            }
+            else if (season == 3) {
+              drawContext(grid, i, j, ".", 4, 12);
+            }
+            else {
+              drawContext(grid, i, j, ".", 4, 0);
+            }
+          }
+        }
 
-//         // Check if the current tile is the lilypad ("l")
-//         if (grid[i][j] === "l") {
-//           if (season !== 3) {
-//             placeTile(i, j, 8, 29);
-//           }
-//         } 
-//       }
-//     }
+        // Check if the current tile is the house ("h")
+        if (grid[i][j] === "h") {
+          if (season == 1) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
+            placeTile(i, j, 26, houseColor);
+          }
+          else if (season == 2) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
+            placeTile(i, j, 26, houseColor);
+          }
+          else if (season == 3) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
+            placeTile(i, j, 27, houseColor);
+          }
+          else {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
+            placeTile(i, j, 26, houseColor);
+          }
 
-//     // Update house texture variation periodically
-//     currentSecond = floor(millis() / 5000)
-//     if (currentSecond !== lastSecond) { // Change texture every 5 seconds (5000 milliseconds)
-//       lastSecond = currentSecond;
-//       // season = 1;
-//       num++; // Increment to change seasons
-//       season = num % 4;
-//     }
-//   }
+        }
+
+        // Check if the current tile is the tree ("t")
+        if (grid[i][j] === "t") {
+          if (season == 1) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
+            placeTile(i, j, 14, 0);
+          }
+          else if (season == 2) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
+            placeTile(i, j, 14, 3);
+          }
+          else if (season == 3) {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
+            placeTile(i, j, 14, 12);
+          }
+          else {
+            placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
+            placeTile(i, j, 14, 9);
+          }
+        }
+
+        // Check if the current tile is the duck ("d")
+        if (grid[i][j] === "d") {
+          if (season !== 3) {
+            placeTile(i, j, 8, 28);
+          }
+        } 
+
+        // Check if the current tile is the lilypad ("l")
+        if (grid[i][j] === "l") {
+          if (season !== 3) {
+            placeTile(i, j, 8, 29);
+          }
+        } 
+      }
+    }
+
+    // Update house texture variation periodically
+    currentSecond = floor(millis() / 5000)
+    if (currentSecond !== lastSecond) { // Change texture every 5 seconds (5000 milliseconds)
+      lastSecond = currentSecond;
+      // season = 1;
+      num++; // Increment to change seasons
+      season = num % 4;
+    }
+  }
   
-//   if (version == 1) {
-//     background(128);
+  if (version == 1) {
+    background(128);
 
-//     noStroke();
-//     for (let i = 0; i < grid.length; i++) {
-//       for (let j = 0; j < grid[i].length; j++) {
-//         // Draw tiles based on grid content
-//         if (grid[i][j] === '=') {
-//           placeTile(i, j, 1, 21); // Draw wall tiles
-//         } else if (grid[i][j] === 'd') {
-//           placeTile(i, j, 5, 27); // Draw door tiles
-//         } else if (grid[i][j] === '+') {
-//           placeTile(i, j, 0, 22); // Draw floor tiles
-//         } else if (grid[i][j] === '.') {
-//           placeTile(i, j, 20, 23); // Draw corridor tiles
-//         } else if (grid[i][j] === '>') {
-//           placeTile(i, j, 8, 24); // Draw '>' for valid corridors
-//         } else if (grid[i][j] === 'c') {
-//           placeTile(i, j, 0, 22);
-//           placeTile(i, j, 5, 28); // Draw chest
-//         } else if (grid[i][j] === 'g') {
-//           placeTile(i, j, 0, 22);
-//           placeTile(i, j, 8, 30); // Draw goblin
-//         }
-//       }
-//     }
-//   }
-// }
+    noStroke();
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[i].length; j++) {
+        // Draw tiles based on grid content
+        if (grid[i][j] === '=') {
+          placeTile(i, j, 1, 21); // Draw wall tiles
+        } else if (grid[i][j] === 'd') {
+          placeTile(i, j, 5, 27); // Draw door tiles
+        } else if (grid[i][j] === '+') {
+          placeTile(i, j, 0, 22); // Draw floor tiles
+        } else if (grid[i][j] === '.') {
+          placeTile(i, j, 20, 23); // Draw corridor tiles
+        } else if (grid[i][j] === '>') {
+          placeTile(i, j, 8, 24); // Draw '>' for valid corridors
+        } else if (grid[i][j] === 'c') {
+          placeTile(i, j, 0, 22);
+          placeTile(i, j, 5, 28); // Draw chest
+        } else if (grid[i][j] === 'g') {
+          placeTile(i, j, 0, 22);
+          placeTile(i, j, 8, 30); // Draw goblin
+        }
+      }
+    }
+  }
+}
 
-// function drawContext(grid, i, j, target, dti, dtj, invert = false) {
-//   let code = gridCode(grid, i, j, target);
-//   if (invert) {
-//     code = ~code & 0xf;
-//   }
-//   let [ti,tj] = lookup[code];
-//   placeTile(i, j, dti + ti, dtj + tj);
-// }
+function drawContext(grid, i, j, target, dti, dtj, invert = false) {
+  let code = gridCode(grid, i, j, target);
+  if (invert) {
+    code = ~code & 0xf;
+  }
+  let [ti,tj] = lookup[code];
+  placeTile(i, j, dti + ti, dtj + tj);
+}
 
 
 
-// function gridCode(grid, i, j, target) {
-//   return (
-//     (gridCheck(grid, i - 1, j, target) << 0) +
-//     (gridCheck(grid, i, j - 1, target) << 1) +
-//     (gridCheck(grid, i, j + 1, target) << 2) +
-//     (gridCheck(grid, i + 1, j, target) << 3)
-//   );
-// }
+function gridCode(grid, i, j, target) {
+  return (
+    (gridCheck(grid, i - 1, j, target) << 0) +
+    (gridCheck(grid, i, j - 1, target) << 1) +
+    (gridCheck(grid, i, j + 1, target) << 2) +
+    (gridCheck(grid, i + 1, j, target) << 3)
+  );
+}
 
-// function gridCheck(grid, i, j, target) {
-//   if (i >= 0 && i < grid.length && j >= 0 && j < grid[i].length) {
-//     return grid[i][j] == target;
-//   } else {
-//     return false;
-//   }
-// }
+function gridCheck(grid, i, j, target) {
+  if (i >= 0 && i < grid.length && j >= 0 && j < grid[i].length) {
+    return grid[i][j] == target;
+  } else {
+    return false;
+  }
+}
 
 
 // Function to check if the house can be placed at a specific location
@@ -727,279 +732,3 @@ function isTouchingBorder(grid, y, x) {
 
   return y === 0 || y === numRows - 1 || x === 0 || x === numCols - 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-// Sketch One
-var s1 = function( sketch ) { 
-  let currentGrid = [];
-  let version = 1;
-  
-  sketch.setup = function() {
-    numCols = select("#asciiBox1").attribute("rows") | 0;
-    numRows = select("#asciiBox1").attribute("cols") | 0;
-    sketch.createCanvas(16 * numCols, 16 * numRows).parent("c1").elt.getContext("2d").imageSmoothingEnabled = false;
-    // canvas1.elt.getContext("2d").imageSmoothingEnabled = false;
-    select("#asciiBox1").input(sketch.reparseGrid);
-
-    sketch.regenerateGrid();
-  };
-
-  sketch.draw = function() {
-    //randomSeed(seed);
-    sketch.drawGrid(currentGrid);
-  };
-
-  sketch.reparseGrid = function() {
-    currentGrid = stringToGrid(select("#asciiBox1").value());
-  };
-
-  sketch.regenerateGrid = function() {
-    select("#asciiBox1").value(gridToString(generateGrid(numCols, numRows, version)));
-    sketch.reparseGrid();
-  };
-
-  sketch.placeTile = function(i, j, ti, tj) {
-    if (tilesetImage) {
-      sketch.image(tilesetImage, 16 * j, 16 * i, 16, 16, 8 * ti, 8 * tj, 8, 8);
-    }
-  };
-
-  sketch.drawGrid = function(grid) {
-    sketch.background(255, 0, 0);
-    sketch.noStroke();
-
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid[i].length; j++) {
-        // Draw tiles based on grid content
-        if (grid[i][j] === '=') {
-          sketch.placeTile(i, j, 1, 21); // Draw wall tiles
-        } else if (grid[i][j] === 'd') {
-          sketch.placeTile(i, j, 5, 27); // Draw door tiles
-        } else if (grid[i][j] === '+') {
-          sketch.placeTile(i, j, 0, 22); // Draw floor tiles
-        } else if (grid[i][j] === '.') {
-          sketch.placeTile(i, j, 20, 23); // Draw corridor tiles
-        } else if (grid[i][j] === '>') {
-          sketch.placeTile(i, j, 8, 24); // Draw '>' for valid corridors
-        } else if (grid[i][j] === 'c') {
-          sketch.placeTile(i, j, 0, 22);
-          sketch.placeTile(i, j, 5, 28); // Draw chest
-        } else if (grid[i][j] === 'g') {
-          sketch.placeTile(i, j, 0, 22);
-          sketch.placeTile(i, j, 8, 30); // Draw goblin
-        }
-      }
-    }
-  };
-};
-var sketch1 = new p5(s1, 'c1');
-
-// Sketch Two
-var s2 = function( sketch ) { 
-  let currentGrid = [];
-  let version = 0;
-  
-  sketch.setup = function() {
-    numCols = select("#asciiBox2").attribute("rows") | 0;
-    numRows = select("#asciiBox2").attribute("cols") | 0;
-    sketch.createCanvas(16 * numCols, 16 * numRows).parent("c2").elt.getContext("2d").imageSmoothingEnabled = false;;
-    // canvas2.elt.getContext("2d").imageSmoothingEnabled = false;
-    select("#asciiBox2").input(sketch.reparseGrid);
-
-    sketch.regenerateGrid();
-  };
-
-  sketch.draw = function() {
-    //randomSeed(seed);
-    sketch.drawGrid(currentGrid);
-  };
-
-  sketch.reparseGrid = function() {
-    currentGrid = stringToGrid(select("#asciiBox2").value());
-  };
-
-  sketch.regenerateGrid = function() {
-    select("#asciiBox2").value(gridToString(generateGrid(numCols, numRows, version)));
-    sketch.reparseGrid();
-  };
-
-  sketch.placeTile = function(i, j, ti, tj) {
-    sketch.image(tilesetImage, 16 * j, 16 * i, 16, 16, 8 * ti, 8 * tj, 8, 8);
-  };
-
-  sketch.drawContext = function(grid, i, j, target, dti, dtj, invert = false) {
-    let code = sketch.gridCode(grid, i, j, target);
-    if (invert) {
-      code = ~code & 0xf;
-    }
-    let [ti,tj] = lookup[code];
-    sketch.placeTile(i, j, dti + ti, dtj + tj);
-  }
-
-  sketch.gridCode = function(grid, i, j, target) {
-    return (
-      (sketch.gridCheck(grid, i - 1, j, target) << 0) +
-      (sketch.gridCheck(grid, i, j - 1, target) << 1) +
-      (sketch.gridCheck(grid, i, j + 1, target) << 2) +
-      (sketch.gridCheck(grid, i + 1, j, target) << 3)
-    );
-  }
-  
-  sketch.gridCheck = function(grid, i, j, target) {
-    if (i >= 0 && i < grid.length && j >= 0 && j < grid[i].length) {
-      return grid[i][j] == target;
-    } else {
-      return false;
-    }
-  }
-
-  sketch.drawGrid = function(grid) {
-    sketch.background(255, 0, 0);
-    sketch.noStroke();
-
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid[i].length; j++) {
-        const g = 10;
-        const t = millis() / 1000.0;
-
-        for (let i = 0; i < grid.length; i++) {
-          for (let j = 0; j < grid[i].length; j++) {
-            if (season == 3) {
-              sketch.placeTile(i, j, 20, 12); // ice
-            }
-            else {
-              sketch.placeTile(i, j, (4 * pow(noise(t / 10, i, j / 4 + t), 2)) | 0, 14); // water
-            }
-
-
-            if (sketch.gridCheck(grid, i, j, ":")) { // dirt
-              if (season == 3) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-              }
-              else {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 3);
-              }
-            } else {
-              // Check if the tile is not near a duck
-              if (!isNearDuck(grid, i, j) && !isNearLilyPad(grid, i, j)) {
-
-                if (season == 3) {
-                  sketch.drawContext(grid, i, j, "w", 9, 12, true);
-                }
-                else {
-                  sketch.drawContext(grid, i, j, "w", 9, 3, true);
-                }
-
-              } 
-            }
-
-
-            if (sketch.gridCheck(grid, i, j, ".")) { // grass
-              if (season == 1) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-              }
-              else if (season == 2) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
-              }
-              else if (season == 3) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-              }
-              else {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 1);
-              }
-            } 
-
-            else {
-              // Check if the tile is not near a duck
-              if (!isNearDuck(grid, i, j)) {
-                if (season == 2) {
-                  sketch.drawContext(grid, i, j, ".", 4, 6);
-                }
-                else if (season == 3) {
-                  sketch.drawContext(grid, i, j, ".", 4, 12);
-                }
-                else {
-                  sketch.drawContext(grid, i, j, ".", 4, 0);
-                }
-              }
-            }
-
-            // Check if the current tile is the house ("h")
-            if (grid[i][j] === "h") {
-              if (season == 1) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-                sketch.placeTile(i, j, 26, houseColor);
-              }
-              else if (season == 2) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
-                sketch.placeTile(i, j, 26, houseColor);
-              }
-              else if (season == 3) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-                sketch.placeTile(i, j, 27, houseColor);
-              }
-              else {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-                sketch.placeTile(i, j, 26, houseColor);
-              }
-
-            }
-
-            // Check if the current tile is the tree ("t")
-            if (grid[i][j] === "t") {
-              if (season == 1) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-                sketch.placeTile(i, j, 14, 0);
-              }
-              else if (season == 2) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 6);
-                sketch.placeTile(i, j, 14, 3);
-              }
-              else if (season == 3) {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 12);
-                sketch.placeTile(i, j, 14, 12);
-              }
-              else {
-                sketch.placeTile(i, j, (4 * pow(random(), g)) | 0, 0);
-                sketch.placeTile(i, j, 14, 9);
-              }
-            }
-
-            // Check if the current tile is the duck ("d")
-            if (grid[i][j] === "d") {
-              if (season !== 3) {
-                sketch.placeTile(i, j, 8, 28);
-              }
-            } 
-
-            // Check if the current tile is the lilypad ("l")
-            if (grid[i][j] === "l") {
-              if (season !== 3) {
-                sketch.placeTile(i, j, 8, 29);
-              }
-            } 
-          }
-        }
-
-        // Update house texture variation periodically
-        currentSecond = floor(millis() / 5000)
-        if (currentSecond !== lastSecond) { // Change texture every 5 seconds (5000 milliseconds)
-          lastSecond = currentSecond;
-          season = 1;
-          num++; // Increment to change seasons
-          //season = num % 4;
-        }
-      }
-    }
-  };
-};
-var sketch2 = new p5(s2, 'c2');
