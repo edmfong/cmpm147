@@ -38,7 +38,7 @@ const w1 = (sketch) => {
 
     sketch.setup = () => {
         let canvas = sketch.createCanvas(width, height);
-        canvas.parent("canvas-container");
+        canvas.parent("canvas-container3");
       
         camera_offset = new p5.Vector(-width / 2, height / 2);
         camera_velocity = new p5.Vector(0, 0);
@@ -49,7 +49,7 @@ const w1 = (sketch) => {
       
         let label = sketch.createP();
         label.html("World key: ");
-        label.parent("canvas-container");
+        label.parent("canvas-container3");
       
         let input = sketch.createInput("quack");
         input.parent(label);
@@ -57,7 +57,7 @@ const w1 = (sketch) => {
           rebuildWorld(input.value());
         });
       
-        sketch.createP("WASD or click adjacent tiles to move.").parent("canvas-container");
+        sketch.createP("WASD or click adjacent tiles to move.").parent("canvas-container3");
       
         rebuildWorld(input.value());
     }
@@ -1201,7 +1201,7 @@ const w3 = (sketch) => {
 
     sketch.setup = () => {
         let canvas = sketch.createCanvas(width, height);
-        canvas.parent("canvas-container3");
+        canvas.parent("canvas-container");
       
         camera_offset = new p5.Vector(-width / 2, height / 2);
         camera_velocity = new p5.Vector(0, 0);
@@ -1212,7 +1212,7 @@ const w3 = (sketch) => {
       
         let label = sketch.createP();
         label.html("World key: ");
-        label.parent("canvas-container3");
+        label.parent("canvas-container");
       
         let input = sketch.createInput("quack");
         input.parent(label);
@@ -1220,7 +1220,7 @@ const w3 = (sketch) => {
           rebuildWorld(input.value());
         });
       
-        sketch.createP("WASD or click adjacent tiles to move.<br>Collect bread to earn points.").parent("canvas-container3");
+        sketch.createP("WASD or click adjacent tiles to move.<br>Collect bread to earn points.").parent("canvas-container");
         
 
         rebuildWorld(input.value());
