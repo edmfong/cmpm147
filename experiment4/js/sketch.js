@@ -158,11 +158,13 @@ const w1 = (sketch) => {
         tileIds = [];
     }
 
-    sketch.mouseClicked = () => {
-        let world_pos = screenToWorld([0 - sketch.mouseX, sketch.mouseY], [camera_offset.x, camera_offset.y]);
-        p3_tileClicked(world_pos[0], world_pos[1]);
-
-        return false;
+    sketch.mouseClicked = (event) => {
+        if (event.target.tagName.toLowerCase() !== 'a') {
+            // Only execute custom behavior if not clicking on a link
+            let world_pos = screenToWorld([0 - sketch.mouseX, sketch.mouseY], [camera_offset.x, camera_offset.y]);
+            p3_tileClicked(world_pos[0], world_pos[1]);
+            return false; // Prevent default behavior only if not clicking on a link
+        }
     }
 
     // Define an object to keep track of the last pressed time of each arrow key
@@ -649,11 +651,13 @@ const w2 = (sketch) => {
         tileIds = [];
     }
 
-    sketch.mouseClicked = () => {
-        let world_pos = screenToWorld([0 - sketch.mouseX, sketch.mouseY], [camera_offset.x, camera_offset.y]);
-        p3_tileClicked(world_pos[0], world_pos[1]);
-
-        return false;
+    sketch.mouseClicked = (event) => {
+        if (event.target.tagName.toLowerCase() !== 'a') {
+            // Only execute custom behavior if not clicking on a link
+            let world_pos = screenToWorld([0 - sketch.mouseX, sketch.mouseY], [camera_offset.x, camera_offset.y]);
+            p3_tileClicked(world_pos[0], world_pos[1]);
+            return false; // Prevent default behavior only if not clicking on a link
+        }
     }
 
     // Define an object to keep track of the last pressed time of each arrow key
@@ -1324,11 +1328,13 @@ const w3 = (sketch) => {
         tileIds = [];
     }
 
-    sketch.mouseClicked = () => {
-        let world_pos = screenToWorld([0 - sketch.mouseX, sketch.mouseY], [camera_offset.x, camera_offset.y]);
-        p3_tileClicked(world_pos[0], world_pos[1]);
-
-        return false;
+    sketch.mouseClicked = (event) => {
+        if (event.target.tagName.toLowerCase() !== 'a') {
+            // Only execute custom behavior if not clicking on a link
+            let world_pos = screenToWorld([0 - sketch.mouseX, sketch.mouseY], [camera_offset.x, camera_offset.y]);
+            p3_tileClicked(world_pos[0], world_pos[1]);
+            return false; // Prevent default behavior only if not clicking on a link
+        }
     }
 
     // Define an object to keep track of the last pressed time of each arrow key
