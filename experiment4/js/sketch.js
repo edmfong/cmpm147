@@ -22,11 +22,6 @@ const w1 = (sketch) => {
     let num = 0;
     let tileIds = [];
 
-    
-
-    function test() {
-        console.log('test');
-    }
 
     sketch.resizeScreen = () => {
         centerHorz = canvasContainer.width() / 2; // Adjusted for drawing logic
@@ -1765,15 +1760,12 @@ function rebuildWorld(key) {
 }
 
 function mouseClicked() {
-  let world_pos = screenToWorld(
-    [0 - mouseX, mouseY],
-    [camera_offset.x, camera_offset.y]
-  );
-
-  if (window.p3_tileClicked) {
-    window.p3_tileClicked(world_pos[0], world_pos[1]);
+  if (event.target.tagName.toLowerCase() !== 'a') {
+    // Only execute custom behavior if not clicking on a link
+    let world_pos = screenToWorld([0 - mouseX, mouseY], [camera_offset.x, camera_offset.y]);
+    p3_tileClicked(world_pos[0], world_pos[1]);
+    return false; // Prevent default behavior only if not clicking on a link
   }
-  return false;
 }
 
 function draw() {
@@ -2786,7 +2778,7 @@ function getGrassTileId(i, j) {
 function setGrassTileId(i, j, tileId) {
   const key = `${i},${j}`;
   tileIds[key] = tileId;
-}s
+}
 
 function drawWave(index) {
   let tilesheetCoordinateY = [0, 1, 2, 3, 4, 5, 6];
