@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- This title is used for tabs and bookmarks -->
+	<title>Experiment 5 - Evolutionary Impressions</title>
+
+	<!-- Use UTF character set, a good idea with any webpage -->
+	<meta charset="UTF-8" />
+	<!-- Set viewport so page remains consistently scaled w narrow devices -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!-- Include CSS file, including a site-wide CSS and for this particular page -->
+	<link rel="stylesheet" type="text/css" href="../css/site.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+
+	<!-- Load jQuery library -->
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+	<!-- Load p5.js library -->
+	<script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.js"></script>
+
+	<!-- Link to javascript files - DEFER waits until all elements are rendered -->
+    <script type="text/javascript" src="../js/site.js" DEFER></script>
+	<!-- Use me for a JavaScript OOP Project -->
+	<script type="text/javascript" src="./js/my_design.js" DEFER></script>
+	<!-- Use me for a p5.js project -->
+	<script type="text/javascript" src="./js/p4_base.js" DEFER></script>
+</head>
+<body>
+	<!-- Style this page by changing the CSS in ../css/site.css or css/experiment.css -->
+	<main id="content">
+		<section>
+
+			<h1>Experiment 5 - Evolutionary Impressions</h1>
+
+			<div class="minor-section">
+				<div id="canvas-container">
+					<!-- canvas will be added here -->
+					<body>
+						<div class="image-stats-container">
+							<div class="image-container">
+								<p id="original"></p>
+								<p class="caption"></p>
+								<br><br>
+								<div class="input-container">
+									<p>Image
+										<select id="dropper"></select>
+										<button id="uploadButton">Upload</button>
+										<input type="file" id="uploadInput" style="display: none;" accept="image/*">
+									</p>
+									<p>Shape
+									<select id="shapeDropper">
+										<option value="duck">Duck</option>
+										<option value="circle">Circle</option>
+										<option value="square">Square</option>
+									</select>
+									<button id="restart">Restart</button>
+									</p>
+									<p>
+										Mutation rate (<span id="rate"></span>%):<br /><input
+										id="slider"
+										type="range"
+										min="1"
+										max="100"
+										value="100"
+										/>
+									</p>
+								</div>
+							</div>
+							<div class="image-container">
+								<p id="active"></p>
+								<p class="title">Active Image</p>
+								<br><br>
+								<div class="stats-container">
+									<p>Active score: <span id="activeScore"></span></p>
+									<p>Exploration rate: <span id="fpsCounter"></span> fps</p>
+									
+									<p>Best score: <span id="bestScore"></span></p>
+								</div>
+							</div>
+							<div class="image-container">
+								<p id="best"></p>
+								<p class="title">Best Image</p>
+								<br><br>
+								<img src="https://i.imgflip.com/8pblhp.jpg" style="margin-left: 10px">
+							</div>
+						</div>
+						<hr>
+						<p class="title">Memory</p>
+						<div class="memory-container">
+							
+							<p id="memory" data-max-items="12"></p>
+						</div>
+					</body>
+				</div>
+                <div class="fullscreen-box">
+                    <button id="fullscreen">Fullscreen</button>
+                </div>
+			</div>
+		</section>
+		<div class="minor-section">
+			<h2>Description</h2>
+			
+		</div>
+
+		<div class="minor-section">
+			<h2>Technical</h2>
+			
+		</div>
+
+		<div class="minor-section">
+			<h2>Reflection</h2>
+			
+		</div>
+		<nav id="links" class="minor-section">
+			<!-- Put link back to homepage here. -->
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+		</nav>
+	</main>
+</body>
+</html>
