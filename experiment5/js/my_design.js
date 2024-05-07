@@ -83,11 +83,11 @@ function p4_initialize(inspiration) {
 
     // Determine the dimensions based on the shape type
     if (design.shape === "circle") {
-      w = random(width / 3);
+      w = random(width / 2);
       h = w;
     } else if (design.shape === "square") {
-      w = random(width / 3);
-      h = random(height / 3);
+      w = random(width / 2);
+      h = random(height / 2);
     }
 
     // Add the shape to the foreground list
