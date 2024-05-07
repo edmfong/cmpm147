@@ -115,7 +115,7 @@ function p4_render(design, inspiration) {
       let g = inspirationImage.pixels[index + 1];
       let b = inspirationImage.pixels[index + 2];
 
-      fill(r, g, b, 128);
+      fill(r, g, b, 150);
 
       if (design.shape === "circle") {
         ellipse(item.x, item.y, item.w, item.h); // Draw ellipse if shape is circle
