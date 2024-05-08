@@ -38,6 +38,7 @@
 				<div id="canvas-container">
 					<!-- canvas will be added here -->
 					<body>
+						<h1>Wait, it's all ducks</h1>
 						<div class="image-stats-container">
 							<div class="image-container">
 								<p id="original"></p>
@@ -89,7 +90,6 @@
 						<hr>
 						<p class="title">Memory</p>
 						<div class="memory-container">
-							
 							<p id="memory" data-max-items="12"></p>
 						</div>
 					</body>
@@ -101,16 +101,31 @@
 		</section>
 		<div class="minor-section">
 			<h2>Description</h2>
-			
+			<p>
+				This experiemnt generates images and mutates itself to optimize the best image it can generate.
+			</p>
 		</div>
 
 		<div class="minor-section">
 			<h2>Technical</h2>
-			
+			<p>
+				The image takes the original image and draws a bunch of shapes. Depending on where the image was places, the generator reads 
+				the color of the position where the shape is placed, then it assigns that color to the shape. The generator takes three shapes 
+				and includes an image of each planet in our solar system. The user has the ability to upload their own images and change the 
+				mutation rate.
+			</p>
 		</div>
 
 		<div class="minor-section">
 			<h2>Reflection</h2>
+			<p>
+				Overall, the experient was easier than expected. There were some hiccups along the way, such as 
+				figuring out how mutation worked and how to implement colors. One of the biggest hurdles I faced was 
+				figuring out how to implement an upload button so that users can upload their own images. 
+				Also, there were some instances where the images weren’t being loaded so it gave errors. 
+				One thing that went successfully was eventually getting the upload button to work and having more.<br>
+				* ChatGPT was a major help throughout this project.
+			</p>
 			
 		</div>
 		<nav id="links" class="minor-section">
