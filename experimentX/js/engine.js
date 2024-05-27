@@ -13,6 +13,8 @@ let tile_rows, tile_columns;
 let camera_offset;
 let camera_velocity;
 
+let currentKeyPressed = null; // Variable to track the currently pressed key
+
 /////////////////////////////
 // Transforms between coordinate systems
 // These are actually slightly weirder than in full 3d...
@@ -113,22 +115,65 @@ function mouseClicked() {
 }
 
 function draw() {
+  updateGathering();
   // Calculate the center of the screen
   let screen_center_x = width / 2;
   let screen_center_y = height / 2;
 
   // Keyboard controls!
-  if (keyIsDown(65)) { // A key (move left)
-    camera_velocity.x -= .3;
-  }
-  if (keyIsDown(68)) { // D key (move right)
-    camera_velocity.x += .3;
-  }
-  if (keyIsDown(83)) { // S key (move down)
-    camera_velocity.y += .3;
-  }
-  if (keyIsDown(87)) { // W key (move up)
-    camera_velocity.y -= .3;
+  let gatheringState = getResourceInfo();
+  if (gatheringState[2] === false) {
+    let unwalkableTiles = getResourceInfo();
+    rocks = unwalkableTiles[3];
+    trees = unwalkableTiles[4];
+    if (keyIsDown(65)) { // A key (move left)
+      // Check if the tile to the left of the player is within rocks or trees
+      let key = [playerPosition[0] - 1, playerPosition[1]];
+      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
+      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
+      if (!(fullRocks || fullTrees)) {
+        // If the tile is not within rocks or trees, move the player left
+        camera_velocity.y = 0;
+        camera_velocity.x = -3;
+      }
+    }
+    if (keyIsDown(68)) { // D key (move right)ww
+      // Check if the tile to the right of the player is within rocks or trees
+      let key = [playerPosition[0] + 1, playerPosition[1]];
+      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
+      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
+      if (!(fullRocks || fullTrees)) {
+        // If the tile is not within rocks or trees, move the player right
+        camera_velocity.y = 0;
+        camera_velocity.x = 3;
+      }
+    }
+    if (keyIsDown(83)) { // S key (move down)
+      // Check if the tile below the player is within rocks or trees
+      let key = [playerPosition[0], playerPosition[1] + 1];
+      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
+      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
+      if (!(fullRocks || fullTrees)) {
+        // If the tile is not within rocks or trees, move the player down
+        camera_velocity.y = 3;
+        camera_velocity.x = 0;
+      }
+    }
+    if (keyIsDown(87)) { // W key (move up)
+      // Check if the tile above the player is within rocks or trees
+      let key = [playerPosition[0], playerPosition[1] - 1];
+      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
+      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
+      if (!(fullRocks || fullTrees)) {
+        // If the tile is not within rocks or trees, move the player up
+        camera_velocity.y = -3;
+        camera_velocity.x = 0;
+      }
+    }
+    // Reset the currentKeyPressed variable when the key is released
+    if (!keyIsDown(currentKeyPressed)) {
+      currentKeyPressed = null;
+    }
   }
 
   // Update player's tile coordinates
@@ -160,6 +205,7 @@ function draw() {
   let x0 = Math.floor((screen_center_x - width * 0.6) / tile_width_step_main);
   let x1 = Math.ceil((screen_center_x + width * 0.6) / tile_width_step_main);
 
+  // draw biome tiles
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
       drawTile([x + world_offset.x, y + world_offset.y], [
@@ -175,6 +221,13 @@ function draw() {
   textSize(16);
   text(`(${playerPosition[0]}, ${playerPosition[1]})`, 10, 10);
 
+  // gathering text
+  if (gathering) {
+    fill(0);
+    textAlign(CENTER, TOP);
+    text('Gathering...', width / 2, 20);
+  }
+
   // Display resources UI
   textAlign(LEFT, TOP);
   textSize(24);
@@ -186,9 +239,19 @@ function draw() {
 
   textSize(16);
 
-  if (window.p3_drawAfter) {
-    window.p3_drawAfter();
+  // draw trees and stone
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      drawTileAfter([x + world_offset.x, y + world_offset.y], [
+        camera_offset.x,
+        camera_offset.y
+      ]);
+    }
   }
+
+  // if (window.p3_drawAfter) {
+  //   window.p3_drawAfter();
+  // }
 
   // Draw the player at the center of the screen
   fill(255, 0, 0);
@@ -199,9 +262,9 @@ function draw() {
 
   describeMouseTile(world_pos, [camera_offset.x, camera_offset.y]); // Draw cursor on top
 
-  if (window.p3_drawAfter) {
-    window.p3_drawAfter();
-  }
+  // if (window.p3_drawAfter) {
+  //   window.p3_drawAfter();
+  // }
 }
 
 
@@ -233,6 +296,20 @@ function drawTile([world_x, world_y], [camera_x, camera_y]) {
   translate(screen_x, screen_y);
   if (window.p3_drawTile) {
     window.p3_drawTile(world_x, world_y, screen_x, screen_y);
+  }
+  pop();
+}
+
+// Draw a trees and stone
+function drawTileAfter([world_x, world_y], [camera_x, camera_y]) {
+  let [screen_x, screen_y] = worldToScreen(
+    [world_x, world_y],
+    [camera_x, camera_y]
+  );
+  push();
+  translate(screen_x, screen_y);
+  if (window.p3_drawTile) {
+    window.p3_drawAfter(world_x, world_y, screen_x, screen_y);
   }
   pop();
 }

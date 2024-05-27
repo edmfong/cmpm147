@@ -13,11 +13,14 @@
     p3_drawSelectedTile
     p3_drawAfter
     getResourceInfo
+    startGathering
+    updateGathering
 */
 
 function p3_preload() {
   biomeTilesheet = loadImage("./assets/biomes.png");
   resourceTilesheet = loadImage("./assets/resources.png");
+  overworldResourcesTilesheet = loadImage("./assets/overworld_resources.png")
   // biomeTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/biomes.png?v=1716690336341");
 }
 
@@ -25,14 +28,21 @@ function p3_setup() {}
 
 let worldSeed;
 let player;
-let playerSize = 20; // Size of the player square
+let playerSize = 32; // Size of the player square
 let playerPosition; // Tile coordinates of the player
 
 let biomeTilesheet;
 let resourceTilesheet;
+let overworldResourcesTilesheet;
 
+let startMillis = 0;
+let gathering = false;
+const gatheringDuration = 1500; // 5 seconds in milliseconds
 let wood = 0;
 let stone = 0;
+let rocks = {}; // Object to track tiles with rocks
+let trees = {}; // Object to track tiles with trees
+
 
 function p3_worldKeyChanged(key) {
   worldSeed = XXH.h32(key, 0);
@@ -53,7 +63,128 @@ let clicks = {};
 
 function p3_tileClicked(i, j) {
   let key = [i, j];
-  clicks[key] = 1 + (clicks[key] | 0);
+
+  // Calculate the player's neighboring tile positions
+  let playerX = playerPosition[0];
+  let playerY = playerPosition[1];
+  let adjacentTiles = [
+      [playerX, playerY], // Player's current tile
+      //1
+      [playerX + 1, playerY + 1], 
+      [playerX + 1, playerY + 2], 
+      [playerX + 2, playerY + 1], 
+      [playerX + 2, playerY + 2], 
+      //2
+      [playerX, playerY + 1], 
+      [playerX, playerY + 2], 
+      [playerX + 1, playerY + 1], 
+      [playerX + 1, playerY + 2], 
+      //3
+      [playerX, playerY + 1], 
+      [playerX, playerY + 2], 
+      [playerX - 1, playerY + 1], 
+      [playerX - 1, playerY + 2], 
+      //4
+      [playerX - 1, playerY + 1], 
+      [playerX - 1, playerY + 2], 
+      [playerX - 2, playerY + 1], 
+      [playerX - 2, playerY + 2], 
+      //5
+      [playerX - 1, playerY], 
+      [playerX - 1, playerY + 1], 
+      [playerX - 2, playerY], 
+      [playerX - 2, playerY + 1], 
+      //6
+      [playerX - 1, playerY], 
+      [playerX - 1, playerY - 1], 
+      [playerX - 2, playerY], 
+      [playerX - 2, playerY - 1], 
+      //7
+      [playerX - 1, playerY - 1], 
+      [playerX - 1, playerY - 2], 
+      [playerX - 2, playerY - 1], 
+      [playerX - 2, playerY - 2], 
+      //8
+      [playerX, playerY - 1], 
+      [playerX, playerY - 2], 
+      [playerX - 1, playerY - 1], 
+      [playerX - 1, playerY - 2], 
+      //9
+      [playerX, playerY - 1], 
+      [playerX, playerY - 2], 
+      [playerX + 1, playerY - 1], 
+      [playerX + 1, playerY - 2], 
+      //10
+      [playerX + 1, playerY - 1], 
+      [playerX + 1, playerY - 2], 
+      [playerX + 2, playerY - 1], 
+      [playerX + 2, playerY - 2], 
+      //11
+      [playerX + 1, playerY], 
+      [playerX + 1, playerY - 1], 
+      [playerX + 2, playerY], 
+      [playerX + 2, playerY - 1], 
+      //12
+      [playerX + 1, playerY], 
+      [playerX + 1, playerY + 1], 
+      [playerX + 2, playerY], 
+      [playerX + 2, playerY + 1], 
+  ];
+
+  // Check if the player is next to any rock tiles
+  let playerNextToRock = null;
+  adjacentTiles.some(tile => {
+    if (rocks[tile]) {
+      playerNextToRock = tile;
+      return true; // Stop iteration once a rock is found
+    }
+  });
+
+  // Check if the player is next to any tree tiles
+  let playerNextToTree = null;
+  adjacentTiles.some(tile => {
+    if (trees[tile]) {
+      playerNextToTree = tile;
+      return true; // Stop iteration once a tree is found
+    }
+  });
+
+  // Check if the clicked tile has a rock
+  if (playerNextToRock) {
+    // Check if the clicked tile or any of its adjacent tiles are rocks
+    if (adjacentTiles.some(tile => rocks[tile] && (tile[0] === i || tile[0] === i - 1) && (tile[1] === j || tile[1] === j - 1))) {
+      // If it's a rock, perform your action (increment stone count, remove image, etc.)
+      stone++;
+      // Reset the rock status for the clicked tile and its adjacent tiles
+      [key, [i - 1, j], [i - 1, j - 1], [i, j - 1]].forEach(tile => {
+        if (rocks[tile]) {
+          rocks[tile] = false;
+        }
+      });
+      startGathering();
+    }
+  }
+  
+  // Check if the clicked tile has a tree
+  else if (playerNextToTree) {
+    // Check if the clicked tile or any of its adjacent tiles are trees
+    if (adjacentTiles.some(tile => trees[tile] && (tile[0] === i || tile[0] === i - 1) && (tile[1] === j || tile[1] === j - 1))) {
+      // If it's a tree, perform your action (increment wood count, remove image, etc.)
+      wood++;
+      // Reset the tree status for the clicked tile and its adjacent tiles
+      [key, [i - 1, j], [i - 1, j - 1], [i, j - 1]].forEach(tile => {
+        if (trees[tile]) {
+          trees[tile] = false;
+        }
+      });
+      startGathering();
+    }
+  }
+
+  else {
+    // Treat the click as a regular tile click
+    clicks[key] = 1 + (clicks[key] || 0);
+  }
 }
 
 function p3_drawBefore() {}
@@ -76,8 +207,10 @@ function p3_drawTile(i, j) {
   else if (XXH.h32("tile:" + [i, j], worldSeed) % 23 == 0) {
     col = 3;
     // fill(240, 200);
-  } else {
+  }
+  else {
     // fill(255, 200);
+    
   }
 
   // Determine row based on biome type
@@ -100,11 +233,6 @@ function p3_drawTile(i, j) {
   }
 
   image(biomeTilesheet, 0, 0, 33, 33, 32 * col, 32 * row, 32, 32);
-
-  // Apply autotiling for grassland
-  // if (biomeType !== "grassland") {
-  //   applyAutotiling(i, j);
-  // }
 
   applyAutotiling(i, j);
 
@@ -132,7 +260,6 @@ function p3_drawTile(i, j) {
     vertex(0, th); // Bottom-left corner
     endShape(CLOSE);
   }
-
   pop();
 }
 
@@ -155,8 +282,51 @@ function p3_drawSelectedTile(i, j) {
   text("tile " + [i, j], tw/2, th/2); // Center the text within the tile
 }
 
-
-function p3_drawAfter() {}
+function p3_drawAfter(i, j) {
+  // trees, stone
+  let orCol = 0;
+  let orRow = 0;
+  if (XXH.h32("tile:" + [i, j], worldSeed) % 50 == 0 && getBiomeType(i, j) === "grassland") {
+    if (trees[[i, j]] !== false){
+      orCol = 0;
+      orRow = 0;
+      trees[[i, j]] = true;
+      image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
+    }
+    else {
+      orCol = 0;
+      orRow = 1;
+      image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
+    }
+  }
+  else if (XXH.h32("tile:" + [i, j], worldSeed) % 50 == 0 && getBiomeType(i, j) === "desert") {
+    if (trees[[i, j]] !== false){
+      orCol = 1;
+      orRow = 0;
+      trees[[i, j]] = true;
+      image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
+    }
+    else {
+      orCol = 0;
+      orRow = 1;
+      image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
+    }
+  }
+  else if (XXH.h32("tile:" + [i, j], worldSeed) % 50 == 0 && getBiomeType(i, j) === "mountain") {
+    if (rocks[[i, j]] !== false){
+      orCol = 2;
+      orRow = 0;
+      rocks[[i, j]] = true;
+      image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
+    }
+    else {
+      orCol = 0;
+      orRow = 1;
+      image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
+    }
+  }
+  
+}
 
 function applyAutotiling(i, j) {
   // First pass to apply autotiling
@@ -304,5 +474,21 @@ function getAutotileCoords(i, j) {
 }
 
 function getResourceInfo() {
-  return [wood, stone];
+  return [wood, stone, gathering, rocks, trees];
+}
+
+function startGathering() {
+  startMillis = millis();
+  gathering = true;
+}
+
+function updateGathering() {
+  if (gathering) {
+    const elapsedTime = millis() - startMillis;
+    console.log('Elapsed time:', elapsedTime);
+    if (elapsedTime >= gatheringDuration) {
+      gathering = false;
+      console.log('Done gathering');
+    }
+  }
 }
