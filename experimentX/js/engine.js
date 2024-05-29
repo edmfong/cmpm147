@@ -15,6 +15,17 @@ let camera_velocity;
 
 let currentKeyPressed = null; // Variable to track the currently pressed key
 
+let farmer;
+let walk_up;
+let walk_down;
+let walk_left;
+let walk_right;
+let idle_up;
+let idle_down;
+let idle_left;
+let idle_right;
+let lastPressedKey = 83; 
+
 /////////////////////////////
 // Transforms between coordinate systems
 // These are actually slightly weirder than in full 3d...
@@ -57,6 +68,15 @@ function preload() {
   if (window.p3_preload) {
     window.p3_preload();
   }
+
+  walk_up = loadImage("./assets/farmer_movement.png");
+  walk_down = loadImage("./assets/farmer_movement.png");
+  walk_left = loadImage("./assets/farmer_movement.png");
+  walk_right = loadImage("./assets/farmer_movement.png");
+  idle_up = loadImage("./assets/farmer_movement.png");
+  idle_down = loadImage("./assets/farmer_movement.png");
+  idle_left = loadImage("./assets/farmer_movement.png");
+  idle_right = loadImage("./assets/farmer_movement.png");
 }
 
 function setup() {
@@ -89,6 +109,8 @@ function setup() {
   createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
 
   rebuildWorld(input.value());
+
+  farmer = new Sprite(walk_down, width / 2, height / 2, 0)
 }
 
 
@@ -126,53 +148,74 @@ function draw() {
     let unwalkableTiles = getResourceInfo();
     rocks = unwalkableTiles[3];
     trees = unwalkableTiles[4];
+    deadtrees = unwalkableTiles[5];
+    houses = unwalkableTiles[6];
+    water = unwalkableTiles[7];
     if (keyIsDown(65)) { // A key (move left)
+      farmer.sheet = walk_left;
+      farmer.row = 2;
+      lastPressedKey = 65;
       // Check if the tile to the left of the player is within rocks or trees
       let key = [playerPosition[0] - 1, playerPosition[1]];
-      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
-      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
-      if (!(fullRocks || fullTrees)) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key]  || water[key])) {
         // If the tile is not within rocks or trees, move the player left
         camera_velocity.y = 0;
         camera_velocity.x = -3;
       }
     }
-    if (keyIsDown(68)) { // D key (move right)ww
+    if (keyIsDown(68)) { // D key (move right)
+      farmer.sheet = walk_right;
+      farmer.row = 3;
+      lastPressedKey = 68;
       // Check if the tile to the right of the player is within rocks or trees
       let key = [playerPosition[0] + 1, playerPosition[1]];
-      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
-      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
-      if (!(fullRocks || fullTrees)) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key])) {
         // If the tile is not within rocks or trees, move the player right
         camera_velocity.y = 0;
         camera_velocity.x = 3;
       }
     }
     if (keyIsDown(83)) { // S key (move down)
+      farmer.sheet = walk_down;
+      farmer.row = 0;
+      lastPressedKey = 83;
       // Check if the tile below the player is within rocks or trees
       let key = [playerPosition[0], playerPosition[1] + 1];
-      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
-      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
-      if (!(fullRocks || fullTrees)) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key])) {
         // If the tile is not within rocks or trees, move the player down
         camera_velocity.y = 3;
         camera_velocity.x = 0;
       }
     }
     if (keyIsDown(87)) { // W key (move up)
+      farmer.sheet = walk_up;
+      farmer.row = 1;
+      lastPressedKey = 87;
       // Check if the tile above the player is within rocks or trees
       let key = [playerPosition[0], playerPosition[1] - 1];
-      let fullRocks = (rocks[key] || rocks[[key[0] - 1, key[1]]] || rocks[[key[0] - 1, key[1] - 1]] || rocks[[key[0], key[1] - 1]]);
-      let fullTrees = (trees[key] || trees[[key[0] - 1, key[1]]] || trees[[key[0] - 1, key[1] - 1]] || trees[[key[0], key[1] - 1]]);
-      if (!(fullRocks || fullTrees)) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key])) {
         // If the tile is not within rocks or trees, move the player up
         camera_velocity.y = -3;
         camera_velocity.x = 0;
       }
     }
-    // Reset the currentKeyPressed variable when the key is released
-    if (!keyIsDown(currentKeyPressed)) {
-      currentKeyPressed = null;
+    if (!keyIsDown(65) && !keyIsDown(68) && !keyIsDown(83) && !keyIsDown(87)) {
+      if (lastPressedKey === 65) {
+        farmer.sheet = idle_left;
+        farmer.row = 6;
+      }
+      if (lastPressedKey === 68) {
+        farmer.sheet = idle_right;
+        farmer.row = 7;
+      }
+      if (lastPressedKey === 83) {
+        farmer.sheet = idle_down;
+        farmer.row = 4;
+      }
+      if (lastPressedKey === 87) {
+        farmer.sheet = idle_up;
+        farmer.row = 5;
+      }
     }
   }
 
@@ -254,11 +297,18 @@ function draw() {
   // }
 
   // Draw the player at the center of the screen
-  fill(255, 0, 0);
-  noStroke();
-  rectMode(CENTER);
-  rect(player.x, player.y, playerSize, playerSize);
+  farmer.draw();
   noFill();
+
+  // draw trees and stone
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      drawTileAfter2([x + world_offset.x, y + world_offset.y], [
+        camera_offset.x,
+        camera_offset.y
+      ]);
+    }
+  }
 
   describeMouseTile(world_pos, [camera_offset.x, camera_offset.y]); // Draw cursor on top
 
@@ -312,4 +362,42 @@ function drawTileAfter([world_x, world_y], [camera_x, camera_y]) {
     window.p3_drawAfter(world_x, world_y, screen_x, screen_y);
   }
   pop();
+}
+
+function drawTileAfter2([world_x, world_y], [camera_x, camera_y]) {
+  let [screen_x, screen_y] = worldToScreen(
+    [world_x, world_y],
+    [camera_x, camera_y]
+  );
+  push();
+  translate(screen_x, screen_y);
+  if (window.p3_drawTile) {
+    window.p3_drawAfter2(world_x, world_y, screen_x, screen_y);
+  }
+  pop();
+}
+
+// Credits: https://www.youtube.com/watch?v=eE65ody9MdI 
+function Sprite(sheet, x, y, row) {
+  this.sheet = sheet;
+  this.scale = 1;
+  this.x = x - 16;
+  this.y = y - 16;
+  this.h = sheet.height / 8;  // Assuming totalRows is the number of rows in the spritesheet
+  this.w = sheet.width / 4; // Assuming totalColumns is the number of columns in the spritesheet
+  this.frame = 0;
+  this.frames = 4;  // Number of frames in a row
+  this.row = row;
+
+  this.draw = function() {
+    // Calculate the x position on the spritesheet based on the current frame
+    let sx = this.w * floor(this.frame);
+    // Calculate the y position on the spritesheet based on the specified row
+    let sy = this.h * this.row;
+    image(this.sheet, this.x, this.y, this.w * this.scale, this.h * this.scale, sx, sy, this.w, this.h);
+    this.frame += 0.1;
+    if (this.frame >= this.frames) {
+      this.frame = 0;
+    }
+  }
 }
