@@ -96,6 +96,34 @@ function setup() {
     window.p3_setup();
   }
 
+  // Create a container div for the select element
+  let selectContainer = createDiv();
+  selectContainer.parent("container"); // Append it to the same parent as the canvas
+
+  // Create a select element
+  let select = createSelect();
+  select.parent(selectContainer);
+
+  // Add options for each variable
+  select.option('', '');
+  select.option('House', 'placingHouse');
+  select.option('Upgrade House', 'upgradeHouse');
+  select.option('Path Tiles', 'placingPathTiles');
+  select.option('Farm Tiles', 'placingFarmTiles');
+  select.option('Fence', 'placingFence');
+  select.option('Stone Path', 'placingStonePaths');
+
+  // Function to be called when selection changes
+  function selectionChanged() {
+    let selectedVariable = select.value();
+    // Call your function based on the selected variable
+    console.log(selectedVariable);
+    action(selectedVariable); // Call test function with the selected value
+  }
+
+// Add an event listener for selection change
+select.changed(selectionChanged);
+
   let label = createP();
   label.html("World key: ");
   label.parent("container");
@@ -151,13 +179,14 @@ function draw() {
     deadtrees = unwalkableTiles[5];
     houses = unwalkableTiles[6];
     water = unwalkableTiles[7];
+    fences = unwalkableTiles[8];
     if (keyIsDown(65)) { // A key (move left)
       farmer.sheet = walk_left;
       farmer.row = 2;
       lastPressedKey = 65;
       // Check if the tile to the left of the player is within rocks or trees
       let key = [playerPosition[0] - 1, playerPosition[1]];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key]  || water[key])) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key]  || water[key] || fences[key])) {
         // If the tile is not within rocks or trees, move the player left
         camera_velocity.y = 0;
         camera_velocity.x = -3;
@@ -169,7 +198,7 @@ function draw() {
       lastPressedKey = 68;
       // Check if the tile to the right of the player is within rocks or trees
       let key = [playerPosition[0] + 1, playerPosition[1]];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key])) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key] || fences[key])) {
         // If the tile is not within rocks or trees, move the player right
         camera_velocity.y = 0;
         camera_velocity.x = 3;
@@ -181,7 +210,7 @@ function draw() {
       lastPressedKey = 83;
       // Check if the tile below the player is within rocks or trees
       let key = [playerPosition[0], playerPosition[1] + 1];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key])) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key] || fences[key])) {
         // If the tile is not within rocks or trees, move the player down
         camera_velocity.y = 3;
         camera_velocity.x = 0;
@@ -193,7 +222,7 @@ function draw() {
       lastPressedKey = 87;
       // Check if the tile above the player is within rocks or trees
       let key = [playerPosition[0], playerPosition[1] - 1];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key])) {
+      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key] || fences[key])) {
         // If the tile is not within rocks or trees, move the player up
         camera_velocity.y = -3;
         camera_velocity.x = 0;

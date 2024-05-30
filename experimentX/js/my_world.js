@@ -42,8 +42,8 @@ let housesTilesheet;
 let startMillis = 0;
 let gathering = false;
 const gatheringDuration = 1500; // 5 seconds in milliseconds
-let wood = 0;
-let stone = 0;
+let wood = 10;
+let stone = 10;
 let rocks = {}; // Object to track tiles with rocks
 let trees = {}; // Object to track tiles with trees
 let deadtrees = {}; // Object to track tiles with trees
@@ -52,17 +52,44 @@ let rockPosition = {};
 let treePosition = {};
 let deadtreePosition = {};
 let housesPosition = {};
+let housesType = {};
 let water = {};
+let pathTiles = {};
 let farmTiles = {};
+let fences = {};
+let stonePaths = {};
 
 let placingHouse = false;
-let placingFarmTiles = true;
+let upgradeHouse = false;
+let placingPathTiles = false;
+let placingFarmTiles = false;
+let placingFence = false;
+let placingStonePaths = false;
 
 
 function p3_worldKeyChanged(key) {
   worldSeed = XXH.h32(key, 0);
   noiseSeed(worldSeed);
   randomSeed(worldSeed);
+
+  startMillis = 0;
+  gathering = false;
+  wood = 10;
+  stone = 10;
+  rocks = {}; // Object to track tiles with rocks
+  trees = {}; // Object to track tiles with trees
+  deadtrees = {}; // Object to track tiles with trees
+  houses = {};
+  rockPosition = {};
+  treePosition = {};
+  deadtreePosition = {};
+  housesPosition = {};
+  housesType = {};
+  water = {};
+  pathTiles = {};
+  farmTiles = {};
+  fences = {};
+  stonePaths = {};
 }
 
 function p3_tileWidth() {
@@ -149,6 +176,7 @@ function p3_tileClicked(i, j) {
           for (let y = j - 1; y <= j + 1; y++) {
               if (rocks[[x, y]]) {
                   rocks[[x, y]] = false;
+                  rockPosition[[x, y]] = false;
               }
           }
       }
@@ -165,6 +193,7 @@ function p3_tileClicked(i, j) {
           for (let y = j - 1; y <= j + 1; y++) {
               if (trees[[x, y]]) {
                   trees[[x, y]] = false;
+                  treePosition[[x, y]] = false
               }
           }
       }
@@ -180,6 +209,7 @@ function p3_tileClicked(i, j) {
           for (let y = j - 1; y <= j + 1; y++) {
               if (deadtrees[[x, y]]) {
                   deadtrees[[x, y]] = false;
+                  deadtreePosition[[x, y]] = false;
               }
           }
       }
@@ -189,11 +219,124 @@ function p3_tileClicked(i, j) {
 
     // If no action was taken, treat the click as a regular tile click
     if (!actionTaken) {
-        clicks[key] = 1 + (clicks[key] || 0);
+        click(key);
     }
   } else {
-    // Treat the click as a regular tile click
-    clicks[key] = 1 + (clicks[key] || 0);
+    click(key);
+  }
+}
+
+function click(key) {
+  // clicked fence
+  if (!fences[key] && wood > 0) {
+      if (placingFence) {
+        if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key] && !stonePaths[key]) {
+          fences[key] = true;
+          wood--;
+        }
+      }
+    }
+  else if (fences[key]){
+    if (placingFence) {
+      fences[key] = false;
+      wood++;
+    }
+  }   
+
+  // clicked fence
+  if (!stonePaths[key] && stone > 0) {
+    if (placingStonePaths) {
+      if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key] && !fences[key]) {
+        stonePaths[key] = true;
+        stone--;
+      }
+    }
+  }
+  else if (stonePaths[key]){
+    if (placingStonePaths) {
+      stonePaths[key] = false;
+      stone++;
+    }
+  }  
+
+  // clicked farm tile
+  if (!farmTiles[key]) {
+      if (placingFarmTiles) {
+        if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key]) {
+          farmTiles[key] = true;
+        }
+      }
+  }
+  else if (farmTiles[key]){
+    if (placingFarmTiles) {
+      farmTiles[key] = false;
+    }
+  } 
+
+  // clicked path tile
+  if (!pathTiles[key]) {
+    if (placingPathTiles) {
+      if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key]) {
+        pathTiles[key] = true;
+      }
+    }
+  }
+  else if (pathTiles[key]){
+    if (placingPathTiles) {
+      pathTiles[key] = false;
+    }
+  } 
+  
+  // clicked house
+  if (!housesPosition[key] && !houses[key]) {
+    if (placingHouse) {
+        let canPlaceHouse = true;
+        for (let xOffset = -4; xOffset < 8; xOffset++) {
+            for (let yOffset = -4; yOffset < 8; yOffset++) {
+                const adjacentKey = [key[0] + xOffset, key[1] - yOffset]; // Assuming y-axis increases downwards
+                if (houses[adjacentKey] || rocks[adjacentKey] || trees[adjacentKey] || deadtrees[adjacentKey] || water[adjacentKey]) {   
+                    // If any adjacent cell contains one of the objects, we can't place the house
+                    canPlaceHouse = false;
+                    break; // No need to check further, exit the loop
+                }
+            }
+            if (!canPlaceHouse) {
+                break; // No need to check further, exit the loop
+            }
+        }
+        if (canPlaceHouse) {
+            console.log('Can place house');
+            housesPosition[key] = true;
+            housesType[key] = 0;
+        } else {
+            console.log('Too Close to Another Object');
+        }
+    }
+  }
+  if (houses[key]) {
+    if (placingHouse) {
+      for (let i0 = -3; i0 < 4; i0++) {
+        for (let j0 = -3; j0 < 4; j0++) {
+          houses[[key[0] + i0, key[1] - j0]] = false;
+          housesPosition[[key[0] + i0, key[1] - j0]] = false;
+          housesType[[key[0] + i0, key[1] - j0]] = -1;
+        }
+      }
+    }
+  }
+
+  // upgrade house
+  if (houses[key]) {
+    if (upgradeHouse) {
+      for (let i0 = -3; i0 < 4; i0++) {
+        for (let j0 = -3; j0 < 4; j0++) {
+          if(housesPosition[[key[0] + i0, key[1] - j0]]){
+            housesType[[key[0] + i0, key[1] - j0]]++;
+            housesType[[key[0] + i0, key[1] - j0]] = housesType[[key[0] + i0, key[1] - j0]] % 4;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -216,11 +359,24 @@ function p3_drawTile(i, j) {
     col = 3;
   }
 
+  // different noise for path and farm plots
+  if ((XXH.h32("tile:" + [i, j], worldSeed) % 4 == 0) && (biomeType == "pathTile" || biomeType == "farmTile")) {
+    col = 1;
+  }
+  else if ((XXH.h32("tile:" + [i, j], worldSeed) % 5 == 0) && (biomeType == "pathTile" || biomeType == "farmTile")) {
+    col = 2;
+  }
+  else if ((XXH.h32("tile:" + [i, j], worldSeed) % 6 == 0) && (biomeType == "pathTile" || biomeType == "farmTile")) {
+    col = 3;
+  }
+
   // Determine row based on biome type
   switch (biomeType) {
     case "farmTile":
-      col = 0;
-      row = 9;
+      row = 10;
+      break;
+    case "pathTile":
+      row = 14;
       break;
     case "water":
       row = 12;
@@ -270,28 +426,6 @@ function p3_drawTile(i, j) {
     // vertex(tw, th); // Bottom-right corner
     // vertex(0, th); // Bottom-left corner
     // endShape(CLOSE);
-    if (placingFarmTiles) {
-      farmTiles[[i - 1, j - 1]] = true;
-    }
-
-    if (placingHouse) {
-      housesPosition[[i - 1, j - 1]] = true;
-    }
-  }
-
-  else {
-    if (placingHouse) {
-      housesPosition[[i - 1, j - 1]] = false;
-      for (let i0 = 0; i0 < 4; i0++) {
-        for (let j0 = 0; j0 < 4; j0++) {
-          houses[[i - 1 + i0, j - 1 + j0]] = false;
-        }
-      }
-    }
-
-    if (placingFarmTiles) {
-      farmTiles[[i - 1, j - 1]] = false;
-    }
   }
 
   pop();
@@ -299,7 +433,6 @@ function p3_drawTile(i, j) {
 
 
 function p3_drawSelectedTile(i, j) {
-  console.log(getBiomeType(i, j))
   noFill();
   stroke(0, 255, 0, 128);
 
@@ -327,6 +460,7 @@ function p3_drawAfter(i, j) {
   // Check adjacent tiles
   // Check adjacent and diagonal tiles
   const directions = [
+    // Radius 1
     [1, 0],   // Right
     [-1, 0],  // Left
     [0, 1],   // Down
@@ -334,7 +468,27 @@ function p3_drawAfter(i, j) {
     [1, 1],   // Diagonal: Bottom-right
     [-1, 1],  // Diagonal: Bottom-left
     [-1, -1], // Diagonal: Top-left
-    [1, -1]   // Diagonal: Top-right
+    [1, -1],  // Diagonal: Top-right
+  
+    // Radius 2
+    [2, 0],   // Right
+    [-2, 0],  // Left
+    [0, 2],   // Down
+    [0, -2],  // Up
+    [2, 2],   // Diagonal: Bottom-right
+    [-2, 2],  // Diagonal: Bottom-left
+    [-2, -2], // Diagonal: Top-left
+    [2, -2],  // Diagonal: Top-right
+  
+    // Additional combinations within radius 2
+    [2, 1],   // Right, then Down
+    [2, -1],  // Right, then Up
+    [-2, 1],  // Left, then Down
+    [-2, -1], // Left, then Up
+    [1, 2],   // Down, then Right
+    [-1, 2],  // Down, then Left
+    [1, -2],  // Up, then Right
+    [-1, -2], // Up, then Left
   ];
   
   if (XXH.h32("tile:" + [i, j], worldSeed) % 50 == 0 && getBiomeType(i, j) === "grassland") {
@@ -342,7 +496,7 @@ function p3_drawAfter(i, j) {
     for (let [dx, dy] of directions) {
         const x = i + dx;
         const y = j + dy;
-        if (treePosition[[x, y]] || deadtreePosition[[x, y]] || rockPosition[[x, y]] ||getBiomeType(x, y) === "water") {
+        if (treePosition[[x, y]] || deadtreePosition[[x, y]] || rockPosition[[x, y]] || getBiomeType(x, y) === "water") {
             isValidPosition = false;
             break; // Exit loop early since we found an adjacent or diagonal tile occupied by a tree
         }
@@ -358,7 +512,7 @@ function p3_drawAfter(i, j) {
     for (let [dx, dy] of directions) {
         const x = i + dx;
         const y = j + dy;
-        if (treePosition[[x, y]] || deadtreePosition[[x, y]] || rockPosition[[x, y]] ||getBiomeType(x, y) === "water") {
+        if (treePosition[[x, y]] || deadtreePosition[[x, y]] || rockPosition[[x, y]] || getBiomeType(x, y) === "water") {
             isValidPosition = false;
             break; // Exit loop early since we found an adjacent or diagonal tile occupied by a deadtree
         }
@@ -374,7 +528,7 @@ function p3_drawAfter(i, j) {
     for (let [dx, dy] of directions) {
         const x = i + dx;
         const y = j + dy;
-        if (treePosition[[x, y]] || deadtreePosition[[x, y]] || rockPosition[[x, y]] ||getBiomeType(x, y) === "water") {
+        if (treePosition[[x, y]] || deadtreePosition[[x, y]] || rockPosition[[x, y]] || getBiomeType(x, y) === "water") {
             isValidPosition = false;
             break; // Exit loop early since we found an adjacent or diagonal tile occupied by a rock
         }
@@ -440,24 +594,31 @@ function p3_drawAfter(i, j) {
     }
   }
 
-  // house
-  // if (XXH.h32("tile:" + [i, j], worldSeed) % 201 == 0) {
-  //     hCol = 1;
-  //     hRow = 1;
-  //     for (let i0 = 0; i0 < 4; i0++) {
-  //       for (let j0 = 0; j0 < 4; j0++) {
-  //         houses[[i + i0, j - j0]] = true;
-  //         rocks[[i + i0, j - j0]] = false;
-  //         trees[[i + i0, j - j0]] = false;
-  //         deadtrees[[i + i0, j - j0]] = false;
-  //         // fill(255, 255, 255);
-  //         // rect(i0 * 32, j0 * 32, 32, 32);
-  //         // noFill();
-  //       }
-  //     }
-      
-  //     drawHouse(hCol, hRow);  
-  // }
+  if (fences[[i, j]] === true) {
+    if (fences[[i, j]] !== false) {
+      let col = 6;
+      let row = 13;
+      image(biomeTilesheet, 0, 0, 32.75, 32.75, 32 * col, 32 * row, 32, 32);
+    }
+    else {
+      let col = 0;
+      let row = 1;
+      image(biomeTilesheet, 0, 0, 32.75, 32.75, 32 * col, 32 * row, 32, 32);
+    } 
+  }
+
+  if (stonePaths[[i, j]] === true) {
+    if (stonePaths[[i, j]] !== false) {
+      let col = 10;
+      let row = 13;
+      image(biomeTilesheet, 0, 0, 32.75, 32.75, 32 * col, 32 * row, 32, 32);
+    }
+    else {
+      let col = 0;
+      let row = 1;
+      image(biomeTilesheet, 0, 0, 32.75, 32.75, 32 * col, 32 * row, 32, 32);
+    }
+  }
 
   if (housesPosition[[i, j]] === true) {
     hCol = 1;
@@ -467,15 +628,21 @@ function p3_drawAfter(i, j) {
         houses[[i + i0, j - j0]] = true;
         rocks[[i + i0, j - j0]] = false;
         trees[[i + i0, j - j0]] = false;
-          deadtrees[[i + i0, j - j0]] = false;
-        fill(255, 255, 255);
-        rect((i + i0) * 32, (j - j0) * 32, 32, 32);
-        noFill();
+        deadtrees[[i + i0, j - j0]] = false;
+        rockPosition[[i + i0, j - j0]] = false;
+        treePosition[[i + i0, j - j0]] = false;
+        deadtreePosition[[i + i0, j - j0]] = false;
       }
     }
     
-    drawHouse(hCol, hRow);  
+    drawHouse(housesType[[i, j]]);  
   }
+
+  else if (housesPosition[[i, j]] !== true){
+    drawHouse(-1)
+  }
+
+  applyFenceAutotiling(i, j);
 
 }
 
@@ -523,46 +690,8 @@ function p3_drawAfter2(i, j) {
       orCol = 0;
       orRow = 1;
       image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
-    }
+    }  
   }
-
-  // house
-  // if (XXH.h32("tile:" + [i, j], worldSeed) % 201 == 0) {
-  //     hCol = 1;
-  //     hRow = 1;
-  //     for (let i0 = 0; i0 < 4; i0++) {
-  //       for (let j0 = 0; j0 < 4; j0++) {
-  //         houses[[i + i0, j - j0]] = true;
-  //         rocks[[i + i0, j - j0]] = false;
-  //         trees[[i + i0, j - j0]] = false;
-  //         deadtrees[[i + i0, j - j0]] = false;
-  //         // fill(255, 255, 255);
-  //         // rect(i0 * 32, j0 * 32, 32, 32);
-  //         // noFill();
-  //       }
-  //     }
-      
-  //     drawHouse(hCol, hRow);  
-  // }
-
-  if (housesPosition[[i, j]] === true) {
-    hCol = 1;
-    hRow = 1;
-    for (let i0 = 0; i0 < 4; i0++) {
-      for (let j0 = 0; j0 < 4; j0++) {
-        houses[[i + i0, j - j0]] = true;
-        rocks[[i + i0, j - j0]] = false;
-        trees[[i + i0, j - j0]] = false;
-          deadtrees[[i + i0, j - j0]] = false;
-        fill(255, 255, 255);
-        rect((i + i0) * 32, (j - j0) * 32, 32, 32);
-        noFill();
-      }
-    }
-    
-    drawHouse(hCol, hRow);  
-  }
-
 }
 
 function applyAutotiling(i, j) {
@@ -573,7 +702,42 @@ function applyAutotiling(i, j) {
       let [col, row] = autotileCoords[i];
       image(biomeTilesheet, 0, 0, 33, 33, 32 * col, 32 * row, 32, 32);
     }
+  }
+}
+
+function applyFenceAutotiling(i, j) {
+  if (fences[[i, j]]) {
+    let top = fences[[i, j - 1]];
+    let bottom = fences[[i, j + 1]];
+    let left = fences[[i - 1, j]];
+    let right = fences[[i + 1, j]];
+
+    let tileNeighbors = [];
+
+    if (left) {
+      tileNeighbors.push([7, 12]);
+    } 
+
+    if (right) {
+      tileNeighbors.push([5, 12]);
+    }
+
+    if (bottom) {
+      tileNeighbors.push([7, 14]);
+    }
     
+    if (top) {
+      tileNeighbors.push([5, 14]);
+    } 
+
+    if (top && bottom) {
+      tileNeighbors.push([7, 14]);
+    }
+
+    // Draw the appropriate tiles based on the tileNeighbors array
+    for (let [col, row] of tileNeighbors) {
+      image(biomeTilesheet, 0, 0, 32.75, 32.75, 32 * col, 32 * row, 32, 32);
+    }
   }
 }
 
@@ -581,6 +745,8 @@ function getBiomeType(i, j) {
   let noiseVal = noise(i * 0.05, j * 0.05);
   if (farmTiles[[i, j]]) {
     return "farmTile";
+  } else if (pathTiles[[i, j]]) {
+    return "pathTile";
   } else if (noiseVal < 0.2) {
     return "water";
   } else if (noiseVal < 0.4) {
@@ -609,22 +775,6 @@ function getAutotileCoords(i, j) {
   let tileNeighbors = [];
 
   if (getBiomeType(i, j) !== "grassland") {
-    // if (neighbors.top === "grassland" && neighbors.left === "grassland") {
-    //   tileNeighbors.push([5, 0]);
-    // } 
-    
-    // if (neighbors.top === "grassland" && neighbors.right === "grassland") {
-    //   tileNeighbors.push([7, 0]);
-    // } 
-    
-    // if (neighbors.bottom === "grassland" && neighbors.left === "grassland") {
-    //   tileNeighbors.push([5, 2]);
-    // } 
-    
-    // if (neighbors.bottom === "grassland" && neighbors.right === "grassland") {
-    //   tileNeighbors.push([7, 2]);
-    // } 
-    
     if (neighbors.top === "grassland") {
       tileNeighbors.push([6, 0]);
     } 
@@ -643,22 +793,6 @@ function getAutotileCoords(i, j) {
   }
 
   if (getBiomeType(i, j) !== "desert") {
-    // if (neighbors.top === "desert" && neighbors.left === "desert" && getBiomeType(i, j) !== "grassland") {
-    //   tileNeighbors.push([5, 6]);
-    // } 
-    
-    // if (neighbors.top === "desert" && neighbors.right === "desert" && getBiomeType(i, j) !== "grassland") {
-    //   tileNeighbors.push([7, 6]);
-    // } 
-    
-    // if (neighbors.bottom === "desert" && neighbors.left === "desert" && getBiomeType(i, j) !== "grassland") {
-    //   tileNeighbors.push([5, 8]);
-    // } 
-    
-    // if (neighbors.bottom === "desert" && neighbors.right === "desert" && getBiomeType(i, j) !== "grassland") {
-    //   tileNeighbors.push([7, 8]);
-    // } 
-    
     if (neighbors.top === "desert" && getBiomeType(i, j) !== "grassland") {
       tileNeighbors.push([6, 6]);
     } 
@@ -677,22 +811,6 @@ function getAutotileCoords(i, j) {
   }
 
   if (getBiomeType(i, j) !== "mountain") {
-    // if (neighbors.top === "mountain" && neighbors.left === "mountain" && getBiomeType(i, j) !== "grassland" && getBiomeType(i, j) !== "desert") {
-    //   tileNeighbors.push([5, 3]);
-    // } 
-    
-    // if (neighbors.top === "mountain" && neighbors.right === "mountain" && getBiomeType(i, j) !== "grassland" && getBiomeType(i, j) !== "desert") {
-    //   tileNeighbors.push([7, 3]);
-    // } 
-    
-    // if (neighbors.bottom === "mountain" && neighbors.left === "mountain" && getBiomeType(i, j) !== "grassland" && getBiomeType(i, j) !== "desert") {
-    //   tileNeighbors.push([5, 5]);
-    // } 
-    
-    // if (neighbors.bottom === "mountain" && neighbors.right === "mountain" && getBiomeType(i, j) !== "grassland" && getBiomeType(i, j) !== "desert") {
-    //   tileNeighbors.push([7, 5]);
-    // } 
-    
     if (neighbors.top === "mountain" && getBiomeType(i, j) !== "grassland" && getBiomeType(i, j) !== "desert") {
       tileNeighbors.push([6, 3]);
     } 
@@ -713,7 +831,7 @@ function getAutotileCoords(i, j) {
 }
 
 function getResourceInfo() {
-  return [wood, stone, gathering, rocks, trees, deadtrees, houses, water];
+  return [wood, stone, gathering, rocks, trees, deadtrees, houses, water, fences];
 }
 
 function startGathering() {
@@ -730,6 +848,54 @@ function updateGathering() {
   }
 }
 
-function drawHouse(col, row) {
+function drawHouse(houseType) {
+  let col = 1;
+  let row = 1
+
+  if (houseType === 0) {
+    col = 1;
+    row = 1;
     image(housesTilesheet, 0, -32 * 3, 128, 128, col * 32 , row * 32, 32, 32);
+  }
+  else if (houseType === 1) {
+    col = 0;
+    row = 0;
+    image(housesTilesheet, 0, -32 * 3, 128, 128, col * 32 , row * 32, 32, 32);
+  }
+  else if (houseType === 2) {
+    col = 0;
+    row = 1;
+    image(housesTilesheet, 0, -32 * 3, 128, 128, col * 32 , row * 32, 32, 32);
+  }
+  else if (houseType === 3) {
+    col = 1;
+    row = 0;
+    image(housesTilesheet, 0, -32 * 3, 128, 128, col * 32 , row * 32, 32, 32);
+  }
+  else {
+    image(housesTilesheet, 0, 0, 1, 1, 0, 0, 1, 1);
+  }
+}
+
+function action(newState) {
+  placingHouse = false;
+  upgradeHouse = false;
+  placingPathTiles = false;
+  placingFarmTiles = false;
+  placingFence = false;
+  placingStonePaths = false
+
+  if (newState === 'placingHouse') {
+    placingHouse = true;
+  } else if (newState === 'upgradeHouse') {
+    upgradeHouse = true;
+  } else if (newState === 'placingPathTiles') {
+    placingPathTiles = true;
+  } else if (newState === 'placingFarmTiles') {
+    placingFarmTiles = true;
+  } else if (newState === 'placingFence') {
+    placingFence = true;
+  } else if (newState === 'placingStonePaths') {
+    placingStonePaths = true;
+  }
 }
