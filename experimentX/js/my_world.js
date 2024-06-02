@@ -22,7 +22,8 @@ function p3_preload() {
   biomeTilesheet = loadImage("./assets/biomes.png");
   resourceTilesheet = loadImage("./assets/resources.png");
   overworldResourcesTilesheet = loadImage("./assets/overworld_resources.png");
-  housesTilesheet = loadImage("./assets/houses.png")
+  housesTilesheet = loadImage("./assets/houses.png");
+  cropTilesheet = loadImage("./assets/crops.png");
   // biomeTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/biomes.png?v=1716690336341");
 }
 
@@ -38,12 +39,14 @@ let biomeTilesheet;
 let resourceTilesheet;
 let overworldResourcesTilesheet;
 let housesTilesheet;
+let cropTilesheet;
 
 let startMillis = 0;
 let gathering = false;
 const gatheringDuration = 1500; // 5 seconds in milliseconds
 let wood = 10;
 let stone = 10;
+let seeds = 10;
 let rocks = {}; // Object to track tiles with rocks
 let trees = {}; // Object to track tiles with trees
 let deadtrees = {}; // Object to track tiles with trees
@@ -58,6 +61,7 @@ let pathTiles = {};
 let farmTiles = {};
 let fences = {};
 let stonePaths = {};
+let crop = {};
 
 let placingHouse = false;
 let upgradeHouse = false;
@@ -65,6 +69,7 @@ let placingPathTiles = false;
 let placingFarmTiles = false;
 let placingFence = false;
 let placingStonePaths = false;
+let planting = false;
 
 
 function p3_worldKeyChanged(key) {
@@ -76,6 +81,7 @@ function p3_worldKeyChanged(key) {
   gathering = false;
   wood = 10;
   stone = 10;
+  seeds = 10;
   rocks = {}; // Object to track tiles with rocks
   trees = {}; // Object to track tiles with trees
   deadtrees = {}; // Object to track tiles with trees
@@ -90,6 +96,7 @@ function p3_worldKeyChanged(key) {
   farmTiles = {};
   fences = {};
   stonePaths = {};
+  crop = {};
 }
 
 function p3_tileWidth() {
@@ -177,6 +184,7 @@ function p3_tileClicked(i, j) {
               if (rocks[[x, y]]) {
                   rocks[[x, y]] = false;
                   rockPosition[[x, y]] = false;
+                  removeObstacle([x,y]);
               }
           }
       }
@@ -194,6 +202,7 @@ function p3_tileClicked(i, j) {
               if (trees[[x, y]]) {
                   trees[[x, y]] = false;
                   treePosition[[x, y]] = false
+                  removeObstacle([x,y]);
               }
           }
       }
@@ -210,6 +219,7 @@ function p3_tileClicked(i, j) {
               if (deadtrees[[x, y]]) {
                   deadtrees[[x, y]] = false;
                   deadtreePosition[[x, y]] = false;
+                  removeObstacle([x,y]);
               }
           }
       }
@@ -240,10 +250,11 @@ function click(key) {
     if (placingFence) {
       fences[key] = false;
       wood++;
+      removeObstacle(key);
     }
   }   
 
-  // clicked fence
+  // clicked stone
   if (!stonePaths[key] && stone > 0) {
     if (placingStonePaths) {
       if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key] && !fences[key]) {
@@ -273,6 +284,65 @@ function click(key) {
     }
   } 
 
+  // clicked farm tile + planting seed
+  if (farmTiles[key] && (crop[key] === undefined || crop[key] === null || crop[key] === false)) {
+    if (planting && seeds > 0) {
+        let num = floor(random(12)); // randomize based on random
+        // let num = XXH.h32("tile:" + key, worldSeed) % 4; // randomize based on hash
+        let cropType = ""
+        if (num === 0) {
+          cropType = "carrot"
+        }
+        else if (num === 1) {
+          cropType = "parsnip"
+        }
+        else if (num === 2) {
+          cropType = "potato"
+        }
+        else if (num === 3) {
+          cropType = "cauliflower"
+        }
+        else if (num === 4){
+          cropType = "eggplant"
+        }
+        else if (num === 5) {
+          cropType = "radish"
+        }
+        else if (num === 6) {
+          cropType = "pumpkin"
+        }
+        else if (num === 7) {
+          cropType = "strawberry"
+        }
+        else if (num === 8) {
+          cropType = "tomato"
+        }
+        else if (num === 9) {
+          cropType = "corn"
+        }
+        else if (num === 10) {
+          cropType = "blueberry"
+        }
+        else if (num === 11) {
+          cropType = "beans"
+        }
+        else {
+          cropType = "carrot"
+        }
+        addCrop(key, cropType, 0);
+        console.log("planting seed");
+        console.log(cropType)
+        seeds--;
+    }
+  } 
+  else if (farmTiles[key] && crop[key] && planting) {
+    if (crop[key] !== false) {
+        crop[key] = false;
+        seeds++;
+        console.log("seed refund")
+    }
+  }
+
   // clicked path tile
   if (!pathTiles[key]) {
     if (placingPathTiles) {
@@ -297,7 +367,7 @@ function click(key) {
                 if (houses[adjacentKey] || rocks[adjacentKey] || trees[adjacentKey] || deadtrees[adjacentKey] || water[adjacentKey]) {   
                     // If any adjacent cell contains one of the objects, we can't place the house
                     canPlaceHouse = false;
-                    break; // No need to check further, exit the loop
+                    break; // No need to chec-k further, exit the loop
                 }
             }
             if (!canPlaceHouse) {
@@ -320,6 +390,7 @@ function click(key) {
           houses[[key[0] + i0, key[1] - j0]] = false;
           housesPosition[[key[0] + i0, key[1] - j0]] = false;
           housesType[[key[0] + i0, key[1] - j0]] = -1;
+          removeObstacle([key[0] + i0, key[1] - j0]);
         }
       }
     }
@@ -620,6 +691,75 @@ function p3_drawAfter(i, j) {
     }
   }
 
+  // plant crop
+  let cropInfo = getCrop([i, j]);
+  if (cropInfo !== undefined) {
+    if (crop[[i, j]] !== false) {
+      let col;
+      let row;
+      if (cropInfo.cropTypeID === "carrot") {
+        col = 3;
+        row = 0;
+      }
+      else if (cropInfo.cropTypeID === "parsnip") {
+        col = 3;
+        row = 1;
+      }
+      else if (cropInfo.cropTypeID === "potato") {
+        col = 3;
+        row = 2;
+      }
+      else if (cropInfo.cropTypeID === "cauliflower") {
+        col = 3;
+        row = 3;
+      }
+      else if (cropInfo.cropTypeID === "eggplant"){
+        col = 3;
+        row = 4;
+      }
+      else if (cropInfo.cropTypeID === "radish") {
+        col = 3;
+        row = 5;
+      }
+      else if (cropInfo.cropTypeID === "pumpkin") {
+        col = 3;
+        row = 6;
+      }
+      else if (cropInfo.cropTypeID === "strawberry") {
+        col = 3;
+        row = 7;
+      }
+      else if (cropInfo.cropTypeID === "tomato") {
+        col = 7;
+        row = 0;
+      }
+      else if (cropInfo.cropTypeID === "corn") {
+        col = 7;
+        row = 1;
+      }
+      else if (cropInfo.cropTypeID === "blueberry") {
+        col = 7;
+        row = 2;
+      }
+      else if (cropInfo.cropTypeID === "beans") {
+        col = 7;
+        row = 3;
+      }
+
+      if (col === 7) {
+        image(cropTilesheet, 0, -40, 32, 64, 32 * col, 64 * row, 32, 64);
+      }
+      else {
+        image(cropTilesheet, 0, -8, 32, 32, 32 * col, 32 * row, 32, 32);
+      }
+    }
+    else {
+      let col = 0;
+      let row = 1;
+      image(biomeTilesheet, 0, 0, 32, 32, 32 * col, 32 * row, 32, 32);
+    }
+  }
+
   if (housesPosition[[i, j]] === true) {
     hCol = 1;
     hRow = 1;
@@ -691,6 +831,75 @@ function p3_drawAfter2(i, j) {
       orRow = 1;
       image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
     }  
+  }
+
+  // plant crop if player on tile
+  let cropInfo = getCrop([i, j]);
+  if (cropInfo !== undefined) {
+    if (crop[[i, j]] !== false && (playerPosition[0] === i && playerPosition[1] === j - 1)) {
+      let col;
+      let row;
+      if (cropInfo.cropTypeID === "carrot") {
+        col = 3;
+        row = 0;
+      }
+      else if (cropInfo.cropTypeID === "parsnip") {
+        col = 3;
+        row = 1;
+      }
+      else if (cropInfo.cropTypeID === "potato") {
+        col = 3;
+        row = 2;
+      }
+      else if (cropInfo.cropTypeID === "cauliflower") {
+        col = 3;
+        row = 3;
+      }
+      else if (cropInfo.cropTypeID === "eggplant"){
+        col = 3;
+        row = 4;
+      }
+      else if (cropInfo.cropTypeID === "radish") {
+        col = 3;
+        row = 5;
+      }
+      else if (cropInfo.cropTypeID === "pumpkin") {
+        col = 3;
+        row = 6;
+      }
+      else if (cropInfo.cropTypeID === "strawberry") {
+        col = 3;
+        row = 7;
+      }
+      else if (cropInfo.cropTypeID === "tomato") {
+        col = 7;
+        row = 0;
+      }
+      else if (cropInfo.cropTypeID === "corn") {
+        col = 7;
+        row = 1;
+      }
+      else if (cropInfo.cropTypeID === "blueberry") {
+        col = 7;
+        row = 2;
+      }
+      else if (cropInfo.cropTypeID === "beans") {
+        col = 7;
+        row = 3;
+      }
+
+      if (col === 7) {
+        image(cropTilesheet, 0, -40, 32, 64, 32 * col, 64 * row, 32, 64);
+      }
+      else {
+        image(cropTilesheet, 0, -8, 32, 32, 32 * col, 32 * row, 32, 32);
+      }
+    }
+    else {
+      let col = 0;
+      let row = 1;
+      image(biomeTilesheet, 0, 0, 32, 32, 32 * col, 32 * row, 32, 32);
+    }
   }
 }
 
@@ -831,7 +1040,7 @@ function getAutotileCoords(i, j) {
 }
 
 function getResourceInfo() {
-  return [wood, stone, gathering, rocks, trees, deadtrees, houses, water, fences];
+  return [wood, stone, seeds, gathering, rocks, trees, deadtrees, houses, water, fences];
 }
 
 function startGathering() {
@@ -877,6 +1086,27 @@ function drawHouse(houseType) {
   }
 }
 
+// Function to add a crop with a given key, cropType, and stage
+function addCrop(key, cropType, growthStage) {
+  crop[key] = { 
+    cropTypeID: cropType, 
+    growthStageID: growthStage
+  };
+}
+
+function getCrop(key) {
+  let cropInfo = crop[key];
+  if (cropInfo) {
+    return {
+      cropTypeID: cropInfo.cropTypeID,
+      growthStageID: cropInfo.growthStageID,
+    };
+  }
+  else {
+    return undefined;
+  }
+}
+
 function action(newState) {
   placingHouse = false;
   upgradeHouse = false;
@@ -884,6 +1114,7 @@ function action(newState) {
   placingFarmTiles = false;
   placingFence = false;
   placingStonePaths = false
+  planting = false;
 
   if (newState === 'placingHouse') {
     placingHouse = true;
@@ -897,5 +1128,7 @@ function action(newState) {
     placingFence = true;
   } else if (newState === 'placingStonePaths') {
     placingStonePaths = true;
+  } else if (newState === 'planting') {
+    planting = true;
   }
 }

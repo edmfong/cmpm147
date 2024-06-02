@@ -25,6 +25,14 @@ let idle_down;
 let idle_left;
 let idle_right;
 let lastPressedKey = 83; 
+// Define a cooldown period in milliseconds
+const cooldownDuration = 100; // .1 second
+
+// Define variables to track cooldown
+let cooldownActive = false;
+let cooldownStartTime = 0;
+
+let obstacles = {};
 
 /////////////////////////////
 // Transforms between coordinate systems
@@ -112,6 +120,7 @@ function setup() {
   select.option('Farm Tiles', 'placingFarmTiles');
   select.option('Fence', 'placingFence');
   select.option('Stone Path', 'placingStonePaths');
+  select.option('Plant Seeds', 'planting');
 
   // Function to be called when selection changes
   function selectionChanged() {
@@ -172,63 +181,169 @@ function draw() {
 
   // Keyboard controls!
   let gatheringState = getResourceInfo();
-  if (gatheringState[2] === false) {
+  if (gatheringState[3] === false) {
     let unwalkableTiles = getResourceInfo();
-    rocks = unwalkableTiles[3];
-    trees = unwalkableTiles[4];
-    deadtrees = unwalkableTiles[5];
-    houses = unwalkableTiles[6];
-    water = unwalkableTiles[7];
-    fences = unwalkableTiles[8];
-    if (keyIsDown(65)) { // A key (move left)
-      farmer.sheet = walk_left;
-      farmer.row = 2;
-      lastPressedKey = 65;
-      // Check if the tile to the left of the player is within rocks or trees
-      let key = [playerPosition[0] - 1, playerPosition[1]];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key]  || water[key] || fences[key])) {
-        // If the tile is not within rocks or trees, move the player left
-        camera_velocity.y = 0;
-        camera_velocity.x = -3;
+    rocks = unwalkableTiles[4];
+    trees = unwalkableTiles[5];
+    deadtrees = unwalkableTiles[6];
+    houses = unwalkableTiles[7];
+    water = unwalkableTiles[8];
+    fences = unwalkableTiles[9];
+
+    if (!cooldownActive) {
+      if (keyIsDown(65) && !keyIsDown(68) && !keyIsDown(83) && !keyIsDown(87)) { // A key (move left)
+        let collisionDetected = false;
+  
+          for (let key in obstacles) {
+              // Collision detection logic
+              if (
+                  player.x - 32 < obstacles[key].x + 32/2 &&
+                  player.x + 0  + (-8) > obstacles[key].x -32/2 &&
+                  player.y - 32 + (8) < obstacles[key].y + 32/2 &&
+                  player.y + 0 + (-8) > obstacles[key].y - 32/2
+              ) {
+                  fill(255, 0, 0);
+                  rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                  noFill();
+                  console.log("Collision detected!");
+                  camera_velocity.x = 0;
+                  collisionDetected = true;
+                  // Activate cooldown
+                  cooldownActive = true;
+                  cooldownStartTime = millis();
+                  break;
+              }
+          }
+  
+          if (!collisionDetected) {
+              // Movement logic for the A key
+              farmer.sheet = walk_left;
+              farmer.row = 2;
+              lastPressedKey = 65;
+              camera_velocity.x = -3;
+              camera_velocity.y = 0;
+          }
       }
-    }
-    if (keyIsDown(68)) { // D key (move right)
-      farmer.sheet = walk_right;
-      farmer.row = 3;
-      lastPressedKey = 68;
-      // Check if the tile to the right of the player is within rocks or trees
-      let key = [playerPosition[0] + 1, playerPosition[1]];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key] || fences[key])) {
-        // If the tile is not within rocks or trees, move the player right
-        camera_velocity.y = 0;
-        camera_velocity.x = 3;
+  
+      else if (keyIsDown(68) && !keyIsDown(65) && !keyIsDown(83) && !keyIsDown(87)) { // D key (move right)
+          let collisionDetected = false;
+  
+          for (let key in obstacles) {
+              // Collision detection logic
+              if (
+                  player.x - 32 + (8) < obstacles[key].x + 32/2 &&
+                  player.x + 0 > obstacles[key].x -32/2 &&
+                  player.y - 32 + (8) < obstacles[key].y + 32/2 &&
+                  player.y + 0 + (-8) > obstacles[key].y - 32/2
+              ) {
+                  fill(255, 0, 0);
+                  rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                  noFill();
+                  console.log("Collision detected!");
+                  camera_velocity.x = 0;
+                  collisionDetected = true;
+                  break;
+              }
+          }
+  
+          if (!collisionDetected) {
+              // Movement logic for the D key
+              farmer.sheet = walk_right;
+              farmer.row = 3;
+              lastPressedKey = 68;
+              camera_velocity.x = 3;
+              camera_velocity.y = 0;
+          }
       }
-    }
-    if (keyIsDown(83)) { // S key (move down)
-      farmer.sheet = walk_down;
-      farmer.row = 0;
-      lastPressedKey = 83;
-      // Check if the tile below the player is within rocks or trees
-      let key = [playerPosition[0], playerPosition[1] + 1];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key] || fences[key])) {
-        // If the tile is not within rocks or trees, move the player down
-        camera_velocity.y = 3;
+  
+      else if (keyIsDown(83) && !keyIsDown(65) && !keyIsDown(68) && !keyIsDown(87)) { // S key (move down)
+        let collisionDetected = false;
+  
+        for (let key in obstacles) {
+            // Collision detection logic
+            if (
+                player.x - 32 + (8) < obstacles[key].x + 32/2 &&
+                player.x + 0 + (-8) > obstacles[key].x -32/2 &&
+                player.y - 32  + (8) < obstacles[key].y + 32/2 &&
+                player.y + 0 > obstacles[key].y - 32/2
+            ) {
+                fill(255, 0, 0);
+                rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                noFill();
+                console.log("Collision detected!");
+                camera_velocity.y = 0;
+                collisionDetected = true;
+                break;
+            }
+        }
+  
+        if (!collisionDetected) {
+            // Movement logic for the D key
+            farmer.sheet = walk_down;
+            farmer.row = 0;
+            lastPressedKey = 83;
+            camera_velocity.y = 3;
+            camera_velocity.x = 0;
+        }
+      }
+      else if (keyIsDown(87) && !keyIsDown(65) && !keyIsDown(68) && !keyIsDown(83)) { // W key (move up)
+        let collisionDetected = false;
+  
+        for (let key in obstacles) {
+            // Collision detection logic
+            if (
+                player.x - 32 + (8) < obstacles[key].x + 32/2 &&
+                player.x + 0 + (-8) > obstacles[key].x -32/2 &&
+                player.y - 32 < obstacles[key].y + 32/2 &&
+                player.y + 0 + (-8) > obstacles[key].y - 32/2
+            ) {
+                fill(255, 0, 0);
+                rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                noFill();
+                console.log("Collision detected!");
+                camera_velocity.y = 0;
+                collisionDetected = true;
+                break;
+            }
+        }
+  
+        if (!collisionDetected) {
+            // Movement logic for the D key
+            farmer.sheet = walk_up;
+            farmer.row = 1;
+            lastPressedKey = 87;
+            camera_velocity.y = -3;
+            camera_velocity.x = 0;
+        }
+      }
+
+      else {
         camera_velocity.x = 0;
+        camera_velocity.y = 0;
+
+        if (lastPressedKey === 65) {
+          farmer.sheet = idle_left;
+          farmer.row = 6;
+        }
+        if (lastPressedKey === 68) {
+          farmer.sheet = idle_right;
+          farmer.row = 7;
+        }
+        if (lastPressedKey === 83) {
+          farmer.sheet = idle_down;
+          farmer.row = 4;
+        }
+        if (lastPressedKey === 87) {
+          farmer.sheet = idle_up;
+          farmer.row = 5;
+        }
       }
     }
-    if (keyIsDown(87)) { // W key (move up)
-      farmer.sheet = walk_up;
-      farmer.row = 1;
-      lastPressedKey = 87;
-      // Check if the tile above the player is within rocks or trees
-      let key = [playerPosition[0], playerPosition[1] - 1];
-      if (!(rocks[key] || trees[key] || deadtrees[key] || houses[key] || water[key] || fences[key])) {
-        // If the tile is not within rocks or trees, move the player up
-        camera_velocity.y = -3;
-        camera_velocity.x = 0;
-      }
-    }
-    if (!keyIsDown(65) && !keyIsDown(68) && !keyIsDown(83) && !keyIsDown(87)) {
+
+    else {
+      camera_velocity.x = 0;
+      camera_velocity.y = 0;
+      
       if (lastPressedKey === 65) {
         farmer.sheet = idle_left;
         farmer.row = 6;
@@ -244,6 +359,15 @@ function draw() {
       if (lastPressedKey === 87) {
         farmer.sheet = idle_up;
         farmer.row = 5;
+      }
+    }
+    
+    // Check and update cooldown status
+    if (cooldownActive) {
+      const elapsedTime = millis() - cooldownStartTime;
+      if (elapsedTime >= cooldownDuration) {
+          // Cooldown period has elapsed, reset cooldown status
+          cooldownActive = false;
       }
     }
   }
@@ -308,10 +432,12 @@ function draw() {
   let wood = image(resourceTilesheet, width - 90, 10, 32, 32, 0 , 0, 32, 32);
   text(`x${inventory[1]}`, width - 50, 55)
   let stone = image(resourceTilesheet, width - 90, 50, 32, 32, 32 , 0, 32, 32);
+  text(`x${inventory[2]}`, width - 50, 95)
+  let seed = image(resourceTilesheet, width - 90, 90, 32, 32, 32 , 0, 32, 32);
 
   textSize(16);
 
-  // draw trees and stone
+  // draw trees and stone (top)
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
       drawTileAfter([x + world_offset.x, y + world_offset.y], [
@@ -327,9 +453,17 @@ function draw() {
 
   // Draw the player at the center of the screen
   farmer.draw();
+
+  // Draw the player's rectangle
+  noFill()
+  stroke(255, 0, 0)
+  strokeWeight(3)
+  rect(player.x - tile_width_step_main / 2, player.y - tile_height_step_main / 2, tile_width_step_main, tile_height_step_main);  // hitbox
+
+  noStroke();
   noFill();
 
-  // draw trees and stone
+  // draw trees and stone (bot)
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
       drawTileAfter2([x + world_offset.x, y + world_offset.y], [
@@ -339,11 +473,102 @@ function draw() {
     }
   }
 
+  // Draw rectangles around rocks
+  for (let key in rocks) {
+    if (rocks[key]) { // Check if there is a rock at this position
+      let position = key.split(',').map(Number); // Convert key to [x, y] array
+      let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
+      let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(3);
+      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      obstacles[key] = { x, y }
+    }
+  }
+
+  // Draw rectangles around trees
+  for (let key in trees) {
+    if (trees[key]) { // Check if there is a rock at this position
+      let position = key.split(',').map(Number); // Convert key to [x, y] array
+      let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
+      let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(3);
+      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      obstacles[key] = { x, y }
+    }
+  }
+
+  // Draw rectangles around deadtrees
+  for (let key in deadtrees) {
+    if (deadtrees[key]) { // Check if there is a rock at this position
+      let position = key.split(',').map(Number); // Convert key to [x, y] array
+      let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
+      let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(3);
+      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      obstacles[key] = { x, y }
+    }
+  }
+
+  // Draw rectangles around houses
+  for (let key in houses) {
+    if (houses[key]) { // Check if there is a rock at this position
+      let position = key.split(',').map(Number); // Convert key to [x, y] array
+      let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
+      let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(3);
+      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      obstacles[key] = { x, y }
+    }
+  }
+
+  
+  // Draw rectangles around water
+  for (let key in water) {
+    if (water[key]) { // Check if there is a rock at this position
+      let position = key.split(',').map(Number); // Convert key to [x, y] array
+      let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
+      let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(3);
+      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      obstacles[key] = { x, y }
+    }
+  }
+
+  // Draw rectangles around fences
+  for (let key in fences) {
+    if (fences[key]) { // Check if there is a rock at this position
+      let position = key.split(',').map(Number); // Convert key to [x, y] array
+      let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
+      let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
+      noFill();
+      stroke(255, 0, 0);
+      strokeWeight(3);
+      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      obstacles[key] = { x, y }
+    }
+  }
+
+  noStroke();
+
   describeMouseTile(world_pos, [camera_offset.x, camera_offset.y]); // Draw cursor on top
 
   // if (window.p3_drawAfter) {
   //   window.p3_drawAfter();
   // }
+}
+
+function removeObstacle(key) {
+  delete obstacles[key];
 }
 
 
