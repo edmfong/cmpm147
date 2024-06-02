@@ -36,6 +36,9 @@ let obstacles = {};
 
 let startScreen = true;
 
+let currentDay = 0; // Initialize day counter
+let lastPhase = false;  // Initialize to track the last phase of the cycle
+
 /////////////////////////////
 // Transforms between coordinate systems
 // These are actually slightly weirder than in full 3d...
@@ -581,20 +584,27 @@ function draw() {
   let cycleTime = timeInMinutes * 60 * 1000
 
   // parts of the day/night are split into quarters
-  
-  if (millis() % cycleTime < cycleTime/4) {//9am - 3pm
+  if (millis() % cycleTime < cycleTime/4) { //9am - 3pm
     currentColor = lerpColor(dayColor, dayColor, 1);
-  } else if (millis() % cycleTime < cycleTime/2) {//3pm - 9pm
+    if (lastPhase) {
+      lastPhase = false;
+      currentDay++;
+      console.log("Day: " + currentDay);
+      growCrops();
+    }
+  } else if (millis() % cycleTime < cycleTime/2) { //3pm - 9pm
     dayColor = color(0, 0, 20, 0); // shade of blue before night
     currentColor = lerpColor(dayColor, nightColor, (millis()%(cycleTime/4))/(cycleTime/4));
-  } else if (millis() % cycleTime < cycleTime*3/4) {//9pm - 3am
+  } else if (millis() % cycleTime < cycleTime*3/4) { //9pm - 3am
     currentColor = lerpColor(nightColor, nightColor, 1);
   } else {//3am - 9am
     dayColor = color(20, 20, 0, 0); // shade of yellow before morning
     currentColor = lerpColor(nightColor, dayColor, (millis()%(cycleTime/4))/(cycleTime/4));
+    lastPhase = true;
   }
 
   background(currentColor)
+
 
   describeMouseTile(world_pos, [camera_offset.x, camera_offset.y]); // Draw cursor on top
 

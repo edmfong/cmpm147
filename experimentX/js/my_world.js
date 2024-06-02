@@ -15,6 +15,7 @@
     p3_drawAfter2
     getResourceInfo
     startGathering
+    growCrops
     updateGathering
 */
 
@@ -42,7 +43,7 @@ function p3_preload() {
   resourceTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/resources.png?v=1717311481532");
   overworldResourcesTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/overworld_resources.png?v=1716787355069")
   housesTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/houses.png?v=1717005572099")
-  cropTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/crops.png?v=1717307905152");
+  cropTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/crops.png?v=1717369137022");
 }
 
 function p3_setup() {
@@ -306,6 +307,14 @@ function p3_tileClicked(i, j) {
     [playerX + 2, playerY - 1]    // Top-right (2 tiles away)
   ];
 
+  // Check if the clicked tile is within the adjacent tiles
+  let isAdjacent = adjacentTiles.some(tile => tile[0] === i && tile[1] === j);
+
+  if (!isAdjacent) {
+    // If the clicked tile is not within adjacent tiles, do nothing
+    return;
+  }
+
   // Check if the player is next to any rock tiles
   let playerNextToRock = null;
   adjacentTiles.some(tile => {
@@ -397,6 +406,9 @@ function p3_tileClicked(i, j) {
 }
 
 function click(key) {
+  // cant place on player
+  //!(playerPosition[0] === key[0] && playerPosition[1] === key[1])
+  
   // clicked fence
   if (!fences[key] && wood > 0) {
       if (placingFence) {
@@ -417,7 +429,7 @@ function click(key) {
   // clicked stone
   if (!stonePaths[key] && stone > 0) {
     if (placingStonePaths) {
-      if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key] && !fences[key]) {
+      if (!houses[key] && !rocks[key] && !trees[key] && !deadtrees[key] && !water[key] && !fences[key] && !crop[key]) {
         stonePaths[key] = true;
         stone--;
       }
@@ -445,7 +457,7 @@ function click(key) {
   } 
   
   // clicked farm tile + planting seed
-  if (farmTiles[key] && (crop[key] === undefined || crop[key] === null || crop[key] === false)) {
+  if (farmTiles[key] && (crop[key] === undefined || crop[key] === null || crop[key] === false) && !stonePaths[key]) {
     if (planting && seeds > 0) {
       let num = floor(random(12)); // randomize based on random
       // let num = XXH.h32("tile:" + key, worldSeed) % 4; // randomize based on hash
@@ -490,8 +502,6 @@ function click(key) {
         cropType = "carrot"
       }
       addCrop(key, cropType, 0);
-      console.log("planting seed");
-      console.log(cropType)
       seeds--;
     }
   } 
@@ -499,7 +509,6 @@ function click(key) {
     if (crop[key] !== false) {
         crop[key] = false;
         seeds++;
-        console.log("seed refund")
     }
   }
 
@@ -665,8 +674,50 @@ function p3_drawTile(i, j) {
 
 
 function p3_drawSelectedTile(i, j) {
-  noFill();
-  stroke(0, 255, 0, 128);
+    // Calculate the player's neighboring tile positions
+    let playerX = playerPosition[0];
+    let playerY = playerPosition[1];
+    let adjacentTiles = [
+      [playerX, playerY],           // Player's current tile
+      // Radius 1
+      [playerX + 1, playerY],       // Right
+      [playerX + 1, playerY + 1],   // Bottom-right
+      [playerX, playerY + 1],       // Bottom
+      [playerX - 1, playerY + 1],   // Bottom-left
+      [playerX - 1, playerY],       // Left
+      [playerX - 1, playerY - 1],   // Top-left
+      [playerX, playerY - 1],       // Top
+      [playerX + 1, playerY - 1],   // Top-right
+      // Radius 2
+      [playerX + 2, playerY],       // Right (2 tiles away)
+      [playerX + 2, playerY + 1],
+      [playerX + 2, playerY + 2],
+      [playerX + 1, playerY + 2],   // Bottom-right (2 tiles away)
+      [playerX, playerY + 2],       // Bottom (2 tiles away)
+      [playerX - 1, playerY + 2],
+      [playerX - 2, playerY + 2],
+      [playerX - 2, playerY + 1],   // Bottom-left (2 tiles away)
+      [playerX - 2, playerY],       // Left (2 tiles away)
+      [playerX - 2, playerY - 1],
+      [playerX - 2, playerY - 2],
+      [playerX - 1, playerY - 2],   // Top-left (2 tiles away)
+      [playerX, playerY - 2],       // Top (2 tiles away)
+      [playerX + 1, playerY - 2],
+      [playerX + 2, playerY - 2],
+      [playerX + 2, playerY - 1]    // Top-right (2 tiles away)
+    ];
+  
+    // Check if the clicked tile is within the adjacent tiles
+    let isAdjacent = adjacentTiles.some(tile => tile[0] === i && tile[1] === j);
+  
+    if (!isAdjacent) {
+      stroke(139, 0, 0, 128);
+      fill (216, 0, 0, 128)
+    }
+    else {
+      stroke(0, 139, 0, 128);
+      fill (0, 216, 0, 128)
+    }
 
   beginShape();
   translate(0, 0); // Center the tile around the cursor
@@ -675,11 +726,12 @@ function p3_drawSelectedTile(i, j) {
   vertex(tw, th); // Bottom-right corner
   vertex(0, th); // Bottom-left corner
   endShape(CLOSE);
+  noFill();
 
   noStroke();
-  fill(0);
-  textAlign(CENTER, CENTER);
-  text("tile " + [i, j], tw/2, th/2); // Center the text within the tile
+  // fill(0);
+  // textAlign(CENTER, CENTER);
+  // text("tile " + [i, j], tw/2, th/2); // Center the text within the tile
 }
 
 
@@ -687,8 +739,6 @@ function p3_drawAfter(i, j) {
   // trees, stone
   let orCol = 0;
   let orRow = 0;
-  let hCol = 0;
-  let hRow = 0;
 
   // Check adjacent tiles
   // Check adjacent and diagonal tiles
@@ -712,8 +762,6 @@ function p3_drawAfter(i, j) {
     [-2, 2],  // Diagonal: Bottom-left
     [-2, -2], // Diagonal: Top-left
     [2, -2],  // Diagonal: Top-right
-  
-    // Additional combinations within radius 2
     [2, 1],   // Right, then Down
     [2, -1],  // Right, then Up
     [-2, 1],  // Left, then Down
@@ -722,6 +770,74 @@ function p3_drawAfter(i, j) {
     [-1, 2],  // Down, then Left
     [1, -2],  // Up, then Right
     [-1, -2], // Up, then Left
+    
+    // Radius 3
+    [3, 0],   // Right
+    [-3, 0],  // Left
+    [0, 3],   // Down
+    [0, -3],  // Up
+    [3, 3],   // Diagonal: Bottom-right
+    [-3, 3],  // Diagonal: Bottom-left
+    [-3, -3], // Diagonal: Top-left
+    [3, -3],  // Diagonal: Top-right
+    [3, 1],   // Right, then Down
+    [3, -1],  // Right, then Up
+    [-3, 1],  // Left, then Down
+    [-3, -1], // Left, then Up
+    [1, 3],   // Down, then Right
+    [-1, 3],  // Down, then Left
+    [1, -3],  // Up, then Right
+    [-1, -3], // Up, then Left
+    [2, 1],   // Right, then Down
+    [2, -1],  // Right, then Up
+    [-2, 1],  // Left, then Down
+    [-2, -1], // Left, then Up
+    [1, 2],   // Down, then Right
+    [-1, 2],  // Down, then Left
+    [1, -2],  // Up, then Right
+    [-1, -2], // Up, then Left
+    
+    // Radius 4
+    [4, 0],   // Right
+    [-4, 0],  // Left
+    [0, 4],   // Down
+    [0, -4],  // Up
+    [4, 4],   // Diagonal: Bottom-right
+    [-4, 4],  // Diagonal: Bottom-left
+    [-4, -4], // Diagonal: Top-left
+    [4, -4],  // Diagonal: Top-right
+    [4, 1],   // Right, then Down
+    [4, -1],  // Right, then Up
+    [-4, 1],  // Left, then Down
+    [-4, -1], // Left, then Up
+    [1, 4],   // Down, then Right
+    [-1, 4],  // Down, then Left
+    [1, -4],  // Up, then Right
+    [-1, -4], // Up, then Left
+    [4, 2],   // Right, then Down
+    [4, -2],  // Right, then Up
+    [-4, 2],  // Left, then Down
+    [-4, -2], // Left, then Up
+    [2, 4],   // Down, then Right
+    [-2, 4],  // Down, then Left
+    [2, -4],  // Up, then Right
+    [-2, -4], // Up, then Left
+    [3, 1],   // Right, then Down
+    [3, -1],  // Right, then Up
+    [-3, 1],  // Left, then Down
+    [-3, -1], // Left, then Up
+    [1, 3],   // Down, then Right
+    [-1, 3],  // Down, then Left
+    [1, -3],  // Up, then Right
+    [-1, -3], // Up, then Left
+    [3, 2],   // Right, then Down
+    [3, -2],  // Right, then Up
+    [-3, 2],  // Left, then Down
+    [-3, -2], // Left, then Up
+    [2, 3],   // Down, then Right
+    [-2, 3],  // Down, then Left
+    [2, -3],  // Up, then Right
+    [-2, -3]  // Up, then Left
   ];
   
   if (XXH.h32("tile:" + [i, j], worldSeed) % 50 == 0 && getBiomeType(i, j) === "grassland") {
@@ -860,55 +976,55 @@ function p3_drawAfter(i, j) {
       let col;
       let row;
       if (cropInfo.cropTypeID === "carrot") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 0;
       }
       else if (cropInfo.cropTypeID === "parsnip") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 1;
       }
       else if (cropInfo.cropTypeID === "potato") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 2;
       }
       else if (cropInfo.cropTypeID === "cauliflower") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 3;
       }
       else if (cropInfo.cropTypeID === "eggplant"){
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 4;
       }
       else if (cropInfo.cropTypeID === "radish") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 5;
       }
       else if (cropInfo.cropTypeID === "pumpkin") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 6;
       }
       else if (cropInfo.cropTypeID === "strawberry") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 7;
       }
       else if (cropInfo.cropTypeID === "tomato") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 0;
       }
       else if (cropInfo.cropTypeID === "corn") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 1;
       }
       else if (cropInfo.cropTypeID === "blueberry") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 2;
       }
       else if (cropInfo.cropTypeID === "beans") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 3;
       }
 
-      if (col === 7) {
+      if (col > 3) {
         image(cropTilesheet, 0, -40, 32, 64, 32 * col, 64 * row, 32, 64);
       }
       else {
@@ -953,8 +1069,6 @@ function p3_drawAfter2(i, j) {
   // trees, stone
   let orCol = 0;
   let orRow = 0;
-  let hCol = 0;
-  let hRow = 0;
 
   if (rockPosition[[i, j]] === true) {
     if (rocks[[i, j]] !== false) {
@@ -1002,55 +1116,55 @@ function p3_drawAfter2(i, j) {
       let col;
       let row;
       if (cropInfo.cropTypeID === "carrot") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 0;
       }
       else if (cropInfo.cropTypeID === "parsnip") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 1;
       }
       else if (cropInfo.cropTypeID === "potato") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 2;
       }
       else if (cropInfo.cropTypeID === "cauliflower") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 3;
       }
       else if (cropInfo.cropTypeID === "eggplant"){
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 4;
       }
       else if (cropInfo.cropTypeID === "radish") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 5;
       }
       else if (cropInfo.cropTypeID === "pumpkin") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 6;
       }
       else if (cropInfo.cropTypeID === "strawberry") {
-        col = 3;
+        col = 0 + cropInfo.growthStageID;
         row = 7;
       }
       else if (cropInfo.cropTypeID === "tomato") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 0;
       }
       else if (cropInfo.cropTypeID === "corn") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 1;
       }
       else if (cropInfo.cropTypeID === "blueberry") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 2;
       }
       else if (cropInfo.cropTypeID === "beans") {
-        col = 7;
+        col = 4 + cropInfo.growthStageID;
         row = 3;
       }
 
-      if (col === 7) {
+      if (col > 3) {
         image(cropTilesheet, 0, -40, 32, 64, 32 * col, 64 * row, 32, 64);
       }
       else {
@@ -1266,6 +1380,22 @@ function getCrop(key) {
   }
   else {
     return undefined;
+  }
+}
+
+function growCrops() {
+  for (let key in crop) {
+    let cropInfo = getCrop(key);
+    if (cropInfo !== undefined) {
+      if (crop[key] !== false) {
+        //if (cropInfo.cropTypeID === "tomato" || cropInfo.cropTypeID === "corn" || cropInfo.cropTypeID === "blueberry" || cropInfo.cropTypeID === "beans") {
+          if (cropInfo.growthStageID < 3) {
+            let stage = cropInfo.growthStageID += 1
+            addCrop(key, cropInfo.cropTypeID, stage)
+          }
+        //}
+      }
+    }
   }
 }
 
