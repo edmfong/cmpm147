@@ -24,7 +24,7 @@ let idle_up;
 let idle_down;
 let idle_left;
 let idle_right;
-let lastPressedKey = 83; 
+let lastPressedKey = 83;
 // Define a cooldown period in milliseconds
 const cooldownDuration = 100; // .1 second
 
@@ -33,6 +33,8 @@ let cooldownActive = false;
 let cooldownStartTime = 0;
 
 let obstacles = {};
+
+let startScreen = true;
 
 /////////////////////////////
 // Transforms between coordinate systems
@@ -76,15 +78,15 @@ function preload() {
   if (window.p3_preload) {
     window.p3_preload();
   }
-
-  walk_up = loadImage("./assets/farmer_movement.png");
-  walk_down = loadImage("./assets/farmer_movement.png");
-  walk_left = loadImage("./assets/farmer_movement.png");
-  walk_right = loadImage("./assets/farmer_movement.png");
-  idle_up = loadImage("./assets/farmer_movement.png");
-  idle_down = loadImage("./assets/farmer_movement.png");
-  idle_left = loadImage("./assets/farmer_movement.png");
-  idle_right = loadImage("./assets/farmer_movement.png");
+  
+  walk_up = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  walk_down = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  walk_left = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  walk_right = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  idle_up = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  idle_down = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  idle_left = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
+  idle_right = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/farmer_movement.png?v=1717005564987");
 }
 
 function setup() {
@@ -103,8 +105,8 @@ function setup() {
   if (window.p3_setup) {
     window.p3_setup();
   }
-
-  // Create a container div for the select element
+  
+    // Create a container div for the select element
   let selectContainer = createDiv();
   selectContainer.parent("container"); // Append it to the same parent as the canvas
 
@@ -130,12 +132,15 @@ function setup() {
     action(selectedVariable); // Call test function with the selected value
   }
 
-// Add an event listener for selection change
-select.changed(selectionChanged);
+  // Add an event listener for selection change
+  select.changed(selectionChanged);
+
 
   let label = createP();
   label.html("World key: ");
   label.parent("container");
+  
+  
 
   let input = createInput("xyzzy");
   input.parent(label);
@@ -146,7 +151,7 @@ select.changed(selectionChanged);
   createP("Arrow keys scroll. Clicking changes tiles.").parent("container");
 
   rebuildWorld(input.value());
-
+  
   farmer = new Sprite(walk_down, width / 2, height / 2, 0)
 }
 
@@ -162,6 +167,9 @@ function rebuildWorld(key) {
 }
 
 function mouseClicked() {
+  if (startScreen) {
+    startScreen = false;
+  }
   let world_pos = screenToWorld(
     [mouseX, mouseY],
     [camera_offset.x, camera_offset.y]
@@ -174,7 +182,17 @@ function mouseClicked() {
 }
 
 function draw() {
-  updateGathering();
+  if (startScreen) {
+    background(0);
+    fill(255);
+    textSize(48);
+    textAlign(CENTER, CENTER);
+    text("Build", width / 2, height / 3);
+    textSize(24);
+    text("Click to Start", width / 2, height / 2);
+  }else{
+    updateGathering();
+  
   // Calculate the center of the screen
   let screen_center_x = width / 2;
   let screen_center_y = height / 2;
@@ -202,9 +220,9 @@ function draw() {
                   player.y - 32 + (8) < obstacles[key].y + 32/2 &&
                   player.y + 0 + (-8) > obstacles[key].y - 32/2
               ) {
-                  fill(255, 0, 0);
-                  rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
-                  noFill();
+                  // fill(255, 0, 0);
+                  // rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                  // noFill();
                   console.log("Collision detected!");
                   camera_velocity.x = 0;
                   collisionDetected = true;
@@ -236,9 +254,9 @@ function draw() {
                   player.y - 32 + (8) < obstacles[key].y + 32/2 &&
                   player.y + 0 + (-8) > obstacles[key].y - 32/2
               ) {
-                  fill(255, 0, 0);
-                  rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
-                  noFill();
+                  // fill(255, 0, 0);
+                  // rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                  // noFill();
                   console.log("Collision detected!");
                   camera_velocity.x = 0;
                   collisionDetected = true;
@@ -267,9 +285,9 @@ function draw() {
                 player.y - 32  + (8) < obstacles[key].y + 32/2 &&
                 player.y + 0 > obstacles[key].y - 32/2
             ) {
-                fill(255, 0, 0);
-                rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
-                noFill();
+                // fill(255, 0, 0);
+                // rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                // noFill();
                 console.log("Collision detected!");
                 camera_velocity.y = 0;
                 collisionDetected = true;
@@ -297,9 +315,9 @@ function draw() {
                 player.y - 32 < obstacles[key].y + 32/2 &&
                 player.y + 0 + (-8) > obstacles[key].y - 32/2
             ) {
-                fill(255, 0, 0);
-                rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
-                noFill();
+                // fill(255, 0, 0);
+                // rect(obstacles[key].x, obstacles[key].y, tile_width_step_main, tile_height_step_main);
+                // noFill();
                 console.log("Collision detected!");
                 camera_velocity.y = 0;
                 collisionDetected = true;
@@ -316,34 +334,10 @@ function draw() {
             camera_velocity.x = 0;
         }
       }
-
+      
       else {
-        camera_velocity.x = 0;
-        camera_velocity.y = 0;
-
-        if (lastPressedKey === 65) {
-          farmer.sheet = idle_left;
-          farmer.row = 6;
-        }
-        if (lastPressedKey === 68) {
-          farmer.sheet = idle_right;
-          farmer.row = 7;
-        }
-        if (lastPressedKey === 83) {
-          farmer.sheet = idle_down;
-          farmer.row = 4;
-        }
-        if (lastPressedKey === 87) {
-          farmer.sheet = idle_up;
-          farmer.row = 5;
-        }
-      }
-    }
-
-    else {
       camera_velocity.x = 0;
       camera_velocity.y = 0;
-      
       if (lastPressedKey === 65) {
         farmer.sheet = idle_left;
         farmer.row = 6;
@@ -360,6 +354,28 @@ function draw() {
         farmer.sheet = idle_up;
         farmer.row = 5;
       }
+      } 
+    }
+    
+    else {
+      camera_velocity.x = 0;
+      camera_velocity.y = 0;
+      if (lastPressedKey === 65) {
+          farmer.sheet = idle_left;
+          farmer.row = 6;
+        }
+        if (lastPressedKey === 68) {
+          farmer.sheet = idle_right;
+          farmer.row = 7;
+        }
+        if (lastPressedKey === 83) {
+          farmer.sheet = idle_down;
+          farmer.row = 4;
+        }
+        if (lastPressedKey === 87) {
+          farmer.sheet = idle_up;
+          farmer.row = 5;
+        }
     }
     
     // Check and update cooldown status
@@ -411,12 +427,12 @@ function draw() {
     }
   }
 
-  // Display the player's position at the top-left corner of the screen
-  fill(0);
-  textAlign(LEFT, TOP);
-  textSize(16);
-  text(`(${playerPosition[0]}, ${playerPosition[1]})`, 10, 10);
-
+   // Display the player's position at the top-left corner of the screen
+   fill(0);
+   textAlign(LEFT, TOP);
+   textSize(16);
+   text(`(${playerPosition[0]}, ${playerPosition[1]})`, 10, 10);
+    
   // gathering text
   if (gathering) {
     fill(0);
@@ -433,8 +449,8 @@ function draw() {
   text(`x${inventory[1]}`, width - 50, 55)
   let stone = image(resourceTilesheet, width - 90, 50, 32, 32, 32 , 0, 32, 32);
   text(`x${inventory[2]}`, width - 50, 95)
-  let seed = image(resourceTilesheet, width - 90, 90, 32, 32, 32 , 0, 32, 32);
-
+  let seed = image(resourceTilesheet, width - 90, 90, 32, 32, 0 , 32, 32, 32);
+  
   textSize(16);
 
   // draw trees and stone (top)
@@ -447,18 +463,14 @@ function draw() {
     }
   }
 
-  // if (window.p3_drawAfter) {
-  //   window.p3_drawAfter();
-  // }
-
   // Draw the player at the center of the screen
   farmer.draw();
-
+  
   // Draw the player's rectangle
-  noFill()
-  stroke(255, 0, 0)
-  strokeWeight(3)
-  rect(player.x - tile_width_step_main / 2, player.y - tile_height_step_main / 2, tile_width_step_main, tile_height_step_main);  // hitbox
+  // noFill()
+  // stroke(255, 0, 0)
+  // strokeWeight(3)
+  // rect(player.x - tile_width_step_main / 2, player.y - tile_height_step_main / 2, tile_width_step_main, tile_height_step_main);  // hitbox
 
   noStroke();
   noFill();
@@ -472,17 +484,17 @@ function draw() {
       ]);
     }
   }
-
+    
   // Draw rectangles around rocks
   for (let key in rocks) {
     if (rocks[key]) { // Check if there is a rock at this position
       let position = key.split(',').map(Number); // Convert key to [x, y] array
       let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
       let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
-      noFill();
-      stroke(255, 0, 0);
-      strokeWeight(3);
-      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      // noFill();
+      // stroke(255, 0, 0);
+      // strokeWeight(3);
+      // rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
       obstacles[key] = { x, y }
     }
   }
@@ -493,10 +505,10 @@ function draw() {
       let position = key.split(',').map(Number); // Convert key to [x, y] array
       let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
       let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
-      noFill();
-      stroke(255, 0, 0);
-      strokeWeight(3);
-      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      // noFill();
+      // stroke(255, 0, 0);
+      // strokeWeight(3);
+      // rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around trees
       obstacles[key] = { x, y }
     }
   }
@@ -507,10 +519,10 @@ function draw() {
       let position = key.split(',').map(Number); // Convert key to [x, y] array
       let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
       let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
-      noFill();
-      stroke(255, 0, 0);
-      strokeWeight(3);
-      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      // noFill();
+      // stroke(255, 0, 0);
+      // strokeWeight(3);
+      // rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around deadtrees
       obstacles[key] = { x, y }
     }
   }
@@ -521,10 +533,10 @@ function draw() {
       let position = key.split(',').map(Number); // Convert key to [x, y] array
       let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
       let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
-      noFill();
-      stroke(255, 0, 0);
-      strokeWeight(3);
-      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      // noFill();
+      // stroke(255, 0, 0);
+      // strokeWeight(3);
+      // rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around houses
       obstacles[key] = { x, y }
     }
   }
@@ -536,10 +548,10 @@ function draw() {
       let position = key.split(',').map(Number); // Convert key to [x, y] array
       let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
       let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
-      noFill();
-      stroke(255, 0, 0);
-      strokeWeight(3);
-      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      // noFill();
+      // stroke(255, 0, 0);
+      // strokeWeight(3);
+      // rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around water
       obstacles[key] = { x, y }
     }
   }
@@ -550,27 +562,51 @@ function draw() {
       let position = key.split(',').map(Number); // Convert key to [x, y] array
       let x = position[0] * tile_width_step_main - camera_offset.x; // Calculate world x-coordinate adjusted by camera offset
       let y = position[1] * tile_height_step_main - camera_offset.y; // Calculate world y-coordinate adjusted by camera offset
-      noFill();
-      stroke(255, 0, 0);
-      strokeWeight(3);
-      rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around rock
+      // noFill();
+      // stroke(255, 0, 0);
+      // strokeWeight(3);
+      // rect(x, y, tile_width_step_main, tile_height_step_main); // Draw rectangle around fences
       obstacles[key] = { x, y }
     }
   }
-
+    
   noStroke();
+  
+  //day/night cycle
+  let dayColor = color(255, 255, 255, 0);
+  let nightColor = color(0, 0, 0, 168);
+  let currentColor;
+
+  let timeInMinutes = 5;
+  let cycleTime = timeInMinutes * 60 * 1000
+
+  // parts of the day/night are split into quarters
+  
+  if (millis() % cycleTime < cycleTime/4) {//9am - 3pm
+    currentColor = lerpColor(dayColor, dayColor, 1);
+  } else if (millis() % cycleTime < cycleTime/2) {//3pm - 9pm
+    dayColor = color(0, 0, 20, 0); // shade of blue before night
+    currentColor = lerpColor(dayColor, nightColor, (millis()%(cycleTime/4))/(cycleTime/4));
+  } else if (millis() % cycleTime < cycleTime*3/4) {//9pm - 3am
+    currentColor = lerpColor(nightColor, nightColor, 1);
+  } else {//3am - 9am
+    dayColor = color(20, 20, 0, 0); // shade of yellow before morning
+    currentColor = lerpColor(nightColor, dayColor, (millis()%(cycleTime/4))/(cycleTime/4));
+  }
+
+  background(currentColor)
 
   describeMouseTile(world_pos, [camera_offset.x, camera_offset.y]); // Draw cursor on top
 
   // if (window.p3_drawAfter) {
   //   window.p3_drawAfter();
   // }
+  }
 }
 
 function removeObstacle(key) {
   delete obstacles[key];
 }
-
 
 // Display a description of the tile at world_x, world_y.
 function describeMouseTile([world_x, world_y], [camera_x, camera_y]) {

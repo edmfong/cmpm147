@@ -18,16 +18,55 @@
     updateGathering
 */
 
+// global variables for sound
+let osc1;
+let osc2;
+let osc3;
+let amp1 = 0.01;
+let amp2 = 0.1;
+let amp3 = 0.05;
+
+let soundLoop;
+//let notePattern1 = [62, 66, 69, 74, 67, 71, 64, 64, 69, 73, 76, 81, 66, 69, 74, 73, 67, 71, 74, 79, 69, 73, 76, 81, 71, 74, 78, 81, 73, 76, 79, 81];
+//let notePattern2 = [50, 50, 45, 45, 47, 47, 43, 43, 38, 38, 33, 33, 40, 40, 36, 36, 38, 38, 33, 33, 40, 40, 36, 36, 42, 42, 38, 38, 45, 45, 41, 41];
+//let notePattern3 = [38, 38, 38, 38, 45, 45, 42, 42, 33, 33, 33, 33, 40, 40, 36, 36, 38, 38, 33, 33, 40, 40, 36, 36, 42, 42, 38, 38, 45, 45, 41, 41];
+let notePattern1 = [];
+let notePattern2 = [];
+let notePattern3 = [];
+
+// change tempo here
+let intervalInSeconds = 0.9;
+
 function p3_preload() {
-  biomeTilesheet = loadImage("./assets/biomes.png");
-  resourceTilesheet = loadImage("./assets/resources.png");
-  overworldResourcesTilesheet = loadImage("./assets/overworld_resources.png");
-  housesTilesheet = loadImage("./assets/houses.png");
-  cropTilesheet = loadImage("./assets/crops.png");
-  // biomeTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/biomes.png?v=1716690336341");
+  biomeTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/biomes.png?v=1717365582951");
+  resourceTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/resources.png?v=1717311481532");
+  overworldResourcesTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/overworld_resources.png?v=1716787355069")
+  housesTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/houses.png?v=1717005572099")
+  cropTilesheet = loadImage("https://cdn.glitch.global/89835fff-f6de-48e0-bb2e-674d0cfb96b8/crops.png?v=1717307905152");
 }
 
 function p3_setup() {
+  // lead
+  osc1 = new p5.Oscillator('square')
+  osc1.freq(0)
+  osc1.amp(amp1)
+  osc1.start()
+  
+  // pad
+  osc2 = new p5.Oscillator('sine')
+  osc2.freq(0)
+  osc2.amp(amp2)
+  osc2.start()
+  
+  // bass
+  osc3 = new p5.Oscillator('triangle')
+  osc3.freq(0)
+  osc3.amp(amp3)
+  osc3.start()
+  
+  createPatterns()
+  soundLoop = new p5.SoundLoop(onSoundLoop, intervalInSeconds);
+  playSynth()
 }
 
 let worldSeed;
@@ -71,12 +110,12 @@ let placingFence = false;
 let placingStonePaths = false;
 let planting = false;
 
-
 function p3_worldKeyChanged(key) {
   worldSeed = XXH.h32(key, 0);
   noiseSeed(worldSeed);
   randomSeed(worldSeed);
-
+  createPatterns()
+  
   startMillis = 0;
   gathering = false;
   wood = 10;
@@ -97,6 +136,127 @@ function p3_worldKeyChanged(key) {
   fences = {};
   stonePaths = {};
   crop = {};
+}
+
+function createPatterns(){
+  notePattern1.length = 0;
+  notePattern2.length = 0;
+  notePattern3.length = 0;
+  // select the key
+  let n = 60 + XXH.h32(0, worldSeed)%12;
+  let chord;
+  // 0 = tonic, 1 = subdominant, 2 = dominant
+  let prevchord = 0;
+  
+  for (let i = 0; i < 8; i++){
+    if(i == 0){
+      chord = getTonic(n);
+      prevchord = 0;
+    } else if(i == 7){
+      chord = getDominant(n);
+      prevchord = 2;
+    } else {
+      if (prevchord == 0){
+        if(XXH.h32(i * 9999 + worldSeed * 1000 + prevchord * 2412, i * 42314 + worldSeed * 1000)%10 <= 1){
+          chord = getTonic(n);
+          prevchord = 0;
+        } else if(XXH.h32(i * 9999 + worldSeed * 1000 + prevchord * 2412, i  * 24164 + worldSeed * 1000)%10 <= 8){
+          chord = getSubdominant(n);
+          prevchord = 1;
+        } else {
+          chord = getDominant(n);
+          prevchord = 2;
+        }
+      } else if (prevchord == 1){
+         if(XXH.h32(i  * 9999 + worldSeed * 1000 + prevchord * 2412, i * 21353 + worldSeed * 1000)%10 <= 1){
+          chord = getSubdominant(n);
+          prevchord = 1;
+        } else {
+          chord = getDominant(n);
+          prevchord = 2;
+        }
+      } else {
+        chord = getTonic(n);
+        prevchord = 0;
+      }
+    }
+    
+    let melodyNotes = getMelodyNotes(chord, i);
+    
+    for (let j = 0; j < 4; j++){
+      notePattern1.push(melodyNotes[j]);
+      notePattern2.push(melodyNotes[j%3]-36);
+      notePattern3.push(chord - 24);
+    }
+  }
+  console.log(notePattern1);
+}
+
+function getMelodyNotes(chordRoot, times) {
+  let notes = [];
+  // Choose melody notes based on the chord
+  // For simplicity, let's just go up a major scale starting from the chord root
+  let scale = [-5, -3, 0, 2, 4, 7, 9, 12, 14];
+  for (let i = 0; i < 4; i++) {
+    let index = XXH.h32(i * worldSeed * 99999 % 89+ times*230%2, i * worldSeed * 2423 + times%2) % scale.length;
+    notes.push(chordRoot + scale[index]);
+  }
+  return notes;
+}
+
+function getTonic(n){
+  if (XXH.h32(worldSeed * 1000 + n * 21341, worldSeed * worldSeed * n * 241)%2 == 0){
+    return n;
+  }
+  else {
+    return n + 4
+  }
+}
+
+function getSubdominant(n){
+  if (XXH.h32(worldSeed * 1000 + n * 21341, worldSeed * worldSeed * n * 241)%3 == 0){
+    return n + 2;
+  }
+  else if (XXH.h32(worldSeed * 1000 + n * 21341, worldSeed * worldSeed - n * 241)%3 == 1){
+    return n + 5
+  }
+  else {
+    return n + 9
+  }
+}
+
+function getDominant(n){
+  if (XXH.h32(worldSeed * 1000%4, worldSeed * worldSeed * n * 241)%2 == 0){
+    return n + 7;
+  }
+  else{
+    return n + 11;
+  }
+}
+
+function playSynth() {
+  userStartAudio();
+
+  if (soundLoop.isPlaying) {
+    soundLoop.stop();
+  } else {
+    // start the loop
+    soundLoop.start();
+  }
+}
+
+function onSoundLoop(timeFromNow) {
+  let noteIndex1 = (soundLoop.iterations - 1) % notePattern1.length;
+  let note1 = midiToFreq(notePattern1[noteIndex1]);
+  osc1.freq(note1, 0.01)
+  
+  let noteIndex2 = (soundLoop.iterations - 1) % notePattern2.length;
+  let note2 = midiToFreq(notePattern2[noteIndex2]);
+  osc2.freq(note2, 0.01)
+  
+  let noteIndex3 = (soundLoop.iterations - 1) % notePattern3.length;
+  let note3 = midiToFreq(notePattern3[noteIndex3]);
+  osc3.freq(note3, 0.01)
 }
 
 function p3_tileWidth() {
@@ -144,7 +304,7 @@ function p3_tileClicked(i, j) {
     [playerX + 1, playerY - 2],
     [playerX + 2, playerY - 2],
     [playerX + 2, playerY - 1]    // Top-right (2 tiles away)
-];
+  ];
 
   // Check if the player is next to any rock tiles
   let playerNextToRock = null;
@@ -180,13 +340,13 @@ function p3_tileClicked(i, j) {
       stone++;
       // Reset the rock status for the clicked tile and its adjacent tiles
       for (let x = i - 1; x <= i + 1; x++) {
-          for (let y = j - 1; y <= j + 1; y++) {
-              if (rocks[[x, y]]) {
-                  rocks[[x, y]] = false;
-                  rockPosition[[x, y]] = false;
-                  removeObstacle([x,y]);
-              }
+        for (let y = j - 1; y <= j + 1; y++) {
+          if (rocks[[x, y]]) {
+            rocks[[x, y]] = false;
+            rockPosition[[x, y]] = false;
+            removeObstacle([x,y]);
           }
+        }
       }
       startGathering();
       actionTaken = true;
@@ -198,13 +358,13 @@ function p3_tileClicked(i, j) {
       wood++;
       // Reset the rock status for the clicked tile and its adjacent tiles
       for (let x = i - 1; x <= i + 1; x++) {
-          for (let y = j - 1; y <= j + 1; y++) {
-              if (trees[[x, y]]) {
-                  trees[[x, y]] = false;
-                  treePosition[[x, y]] = false
-                  removeObstacle([x,y]);
-              }
+        for (let y = j - 1; y <= j + 1; y++) {
+          if (trees[[x, y]]) {
+            trees[[x, y]] = false;
+            treePosition[[x, y]] = false
+            removeObstacle([x,y]);
           }
+        }
       }
       startGathering();
       actionTaken = true;
@@ -215,13 +375,13 @@ function p3_tileClicked(i, j) {
       wood++;
       // Reset the rock status for the clicked tile and its adjacent tiles
       for (let x = i - 1; x <= i + 1; x++) {
-          for (let y = j - 1; y <= j + 1; y++) {
-              if (deadtrees[[x, y]]) {
-                  deadtrees[[x, y]] = false;
-                  deadtreePosition[[x, y]] = false;
-                  removeObstacle([x,y]);
-              }
+        for (let y = j - 1; y <= j + 1; y++) {
+          if (deadtrees[[x, y]]) {
+            deadtrees[[x, y]] = false;
+            deadtreePosition[[x, y]] = false;  
+            removeObstacle([x,y]);
           }
+        }
       }
       startGathering();
       actionTaken = true;
@@ -283,56 +443,56 @@ function click(key) {
       farmTiles[key] = false;
     }
   } 
-
+  
   // clicked farm tile + planting seed
   if (farmTiles[key] && (crop[key] === undefined || crop[key] === null || crop[key] === false)) {
     if (planting && seeds > 0) {
-        let num = floor(random(12)); // randomize based on random
-        // let num = XXH.h32("tile:" + key, worldSeed) % 4; // randomize based on hash
-        let cropType = ""
-        if (num === 0) {
-          cropType = "carrot"
-        }
-        else if (num === 1) {
-          cropType = "parsnip"
-        }
-        else if (num === 2) {
-          cropType = "potato"
-        }
-        else if (num === 3) {
-          cropType = "cauliflower"
-        }
-        else if (num === 4){
-          cropType = "eggplant"
-        }
-        else if (num === 5) {
-          cropType = "radish"
-        }
-        else if (num === 6) {
-          cropType = "pumpkin"
-        }
-        else if (num === 7) {
-          cropType = "strawberry"
-        }
-        else if (num === 8) {
-          cropType = "tomato"
-        }
-        else if (num === 9) {
-          cropType = "corn"
-        }
-        else if (num === 10) {
-          cropType = "blueberry"
-        }
-        else if (num === 11) {
-          cropType = "beans"
-        }
-        else {
-          cropType = "carrot"
-        }
-        addCrop(key, cropType, 0);
-        console.log("planting seed");
-        console.log(cropType)
-        seeds--;
+      let num = floor(random(12)); // randomize based on random
+      // let num = XXH.h32("tile:" + key, worldSeed) % 4; // randomize based on hash
+      let cropType = ""
+      if (num === 0) {
+        cropType = "carrot"
+      }
+      else if (num === 1) {
+        cropType = "parsnip"
+      }
+      else if (num === 2) {
+        cropType = "potato"
+      }
+      else if (num === 3) {
+        cropType = "cauliflower"
+      }
+      else if (num === 4){
+        cropType = "eggplant"
+      }
+      else if (num === 5) {
+        cropType = "radish"
+      }
+      else if (num === 6) {
+        cropType = "pumpkin"
+      }
+      else if (num === 7) {
+        cropType = "strawberry"
+      }
+      else if (num === 8) {
+        cropType = "tomato"
+      }
+      else if (num === 9) {
+        cropType = "corn"
+      }
+      else if (num === 10) {
+        cropType = "blueberry"
+      }
+      else if (num === 11) {
+        cropType = "beans"
+      }
+      else {
+        cropType = "carrot"
+      }
+      addCrop(key, cropType, 0);
+      console.log("planting seed");
+      console.log(cropType)
+      seeds--;
     }
   } 
   else if (farmTiles[key] && crop[key] && planting) {
@@ -342,6 +502,7 @@ function click(key) {
         console.log("seed refund")
     }
   }
+
 
   // clicked path tile
   if (!pathTiles[key]) {
@@ -367,7 +528,7 @@ function click(key) {
                 if (houses[adjacentKey] || rocks[adjacentKey] || trees[adjacentKey] || deadtrees[adjacentKey] || water[adjacentKey]) {   
                     // If any adjacent cell contains one of the objects, we can't place the house
                     canPlaceHouse = false;
-                    break; // No need to chec-k further, exit the loop
+                    break; // No need to check further, exit the loop
                 }
             }
             if (!canPlaceHouse) {
@@ -429,7 +590,7 @@ function p3_drawTile(i, j) {
   else if (XXH.h32("tile:" + [i, j], worldSeed) % 23 == 0) {
     col = 3;
   }
-
+  
   // different noise for path and farm plots
   if ((XXH.h32("tile:" + [i, j], worldSeed) % 4 == 0) && (biomeType == "pathTile" || biomeType == "farmTile")) {
     col = 1;
@@ -520,6 +681,7 @@ function p3_drawSelectedTile(i, j) {
   textAlign(CENTER, CENTER);
   text("tile " + [i, j], tw/2, th/2); // Center the text within the tile
 }
+
 
 function p3_drawAfter(i, j) {
   // trees, stone
@@ -690,7 +852,7 @@ function p3_drawAfter(i, j) {
       image(biomeTilesheet, 0, 0, 32.75, 32.75, 32 * col, 32 * row, 32, 32);
     }
   }
-
+  
   // plant crop
   let cropInfo = getCrop([i, j]);
   if (cropInfo !== undefined) {
@@ -832,7 +994,7 @@ function p3_drawAfter2(i, j) {
       image(overworldResourcesTilesheet, 0, 0, 64, 64, orCol * 32 , orRow * 32, 32, 32);
     }  
   }
-
+  
   // plant crop if player on tile
   let cropInfo = getCrop([i, j]);
   if (cropInfo !== undefined) {
