@@ -1039,8 +1039,8 @@ function p3_drawAfter(i, j) {
   }
 
   if (housesPosition[[i, j]] === true) {
-    hCol = 1;
-    hRow = 1;
+    let hCol = 1;
+    let hRow = 1;
     for (let i0 = 0; i0 < 4; i0++) {
       for (let j0 = 0; j0 < 4; j0++) {
         houses[[i + i0, j - j0]] = true;
